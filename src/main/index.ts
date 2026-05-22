@@ -3,11 +3,25 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { is } from '@electron-toolkit/utils'
 import { RepoStore } from './store/RepoStore'
+import { GitService } from './git/GitService'
 import { IPC, type IpcRequest } from '../shared/ipc'
 
 let repoStore: RepoStore
+const gitService = new GitService()
 
 function registerIpcHandlers(): void {
+  ipcMain.handle(IPC.GIT_STATUS, (_, req: IpcRequest<'git:getStatus'>) =>
+    gitService.getStatus(req.repoPath)
+  )
+
+  ipcMain.handle(IPC.GIT_STAGED_DIFF, (_, req: IpcRequest<'git:getStagedDiff'>) =>
+    gitService.getStagedDiff(req.repoPath)
+  )
+
+  ipcMain.handle(IPC.GIT_UNSTAGED_DIFF, (_, req: IpcRequest<'git:getUnstagedDiff'>) =>
+    gitService.getUnstagedDiff(req.repoPath)
+  )
+
   ipcMain.handle(IPC.REPO_GET_ALL, () => repoStore.getAll())
 
   ipcMain.handle(IPC.REPO_ADD, (_, req: IpcRequest<'repo:add'>) => {
