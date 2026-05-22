@@ -90,3 +90,74 @@ body {
   font-size: 13px;
   text-align: center;
 }
+
+/* Repo list ----------------------------------------------------------------- */
+
+.repo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  cursor: default;
+  border-bottom: 1px solid var(--border);
+}
+
+.repo-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.repo-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  color: var(--text-primary);
+}
+
+.repo-remove {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.repo-remove:hover {
+  color: var(--text-primary);
+}
+
+/* Sidebar footer ------------------------------------------------------------ */
+
+.sidebar-footer {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.error-message {
+  color: #ff6b6b;
+  font-size: 11px;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+
+.add-repo-btn {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font);
+}
+
+.add-repo-btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+}

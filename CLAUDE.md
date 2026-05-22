@@ -1,3 +1,8 @@
+## Official issue tracker
+
+The official issue tracker for this project is **GitHub Issues** at `cassiorsfreitas/gitrace`.
+All tasks, bugs, and features are tracked there.
+
 ## Agent skills
 
 ### Issue tracker

@@ -70,6 +70,18 @@ export interface IpcChannels {
     request: { repoPath: string }
     response: void
   }
+  'repo:openPicker': {
+    request: Record<string, never>
+    response: string | null // null = cancelled, string = added path; throws if not a git repo
+  }
+  'repo:reorder': {
+    request: { paths: string[] }
+    response: void
+  }
+  'repo:setActiveIndex': {
+    request: { index: number }
+    response: void
+  }
 }
 
 export type IpcChannel = keyof IpcChannels
@@ -90,4 +102,7 @@ export const IPC = {
   REPO_GET_ALL: 'repo:getAll',
   REPO_ADD: 'repo:add',
   REPO_REMOVE: 'repo:remove',
+  REPO_OPEN_PICKER: 'repo:openPicker',
+  REPO_REORDER: 'repo:reorder',
+  REPO_SET_ACTIVE_INDEX: 'repo:setActiveIndex',
 } as const satisfies Record<string, IpcChannel>

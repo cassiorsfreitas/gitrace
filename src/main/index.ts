@@ -1,6 +1,43 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
 import { join } from 'path'
+import { existsSync } from 'fs'
 import { is } from '@electron-toolkit/utils'
+import { RepoStore } from './store/RepoStore'
+import { IPC, type IpcRequest } from '../shared/ipc'
+
+let repoStore: RepoStore
+
+function registerIpcHandlers(): void {
+  ipcMain.handle(IPC.REPO_GET_ALL, () => repoStore.getAll())
+
+  ipcMain.handle(IPC.REPO_ADD, (_, req: IpcRequest<'repo:add'>) => {
+    repoStore.addRepo(req.repoPath)
+  })
+
+  ipcMain.handle(IPC.REPO_REMOVE, (_, req: IpcRequest<'repo:remove'>) => {
+    repoStore.removeRepo(req.repoPath)
+  })
+
+  ipcMain.handle(IPC.REPO_OPEN_PICKER, async () => {
+    const result = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+    if (result.canceled || result.filePaths.length === 0) return null
+
+    const selectedPath = result.filePaths[0]
+    if (!existsSync(join(selectedPath, '.git'))) {
+      throw new Error(`Not a git repository: ${selectedPath}`)
+    }
+    repoStore.addRepo(selectedPath)
+    return selectedPath
+  })
+
+  ipcMain.handle(IPC.REPO_REORDER, (_, req: IpcRequest<'repo:reorder'>) => {
+    repoStore.reorderRepos(req.paths)
+  })
+
+  ipcMain.handle(IPC.REPO_SET_ACTIVE_INDEX, (_, req: IpcRequest<'repo:setActiveIndex'>) => {
+    repoStore.setActiveIndex(req.index)
+  })
+}
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -37,6 +74,8 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  repoStore = new RepoStore(app.getPath('userData'))
+  registerIpcHandlers()
   createWindow()
 
   app.on('activate', () => {
