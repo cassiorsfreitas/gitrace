@@ -53,8 +53,8 @@ function extractHunkPatch(
 export interface DiffCanvasHandle {
   scrollLineDown(): void;
   scrollLineUp(): void;
-  scrollToNextFile(): void;
-  scrollToPrevFile(): void;
+  scrollToNextFile(): string | null;
+  scrollToPrevFile(): string | null;
 }
 
 interface DiffCanvasProps {
@@ -63,11 +63,12 @@ interface DiffCanvasProps {
   selectedFile: string | null;
   onStageHunk: (patch: string) => void;
   onUnstageHunk: (patch: string) => void;
+  isFocused?: boolean;
 }
 
 export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
   function DiffCanvas(
-    { stagedDiff, unstagedDiff, selectedFile, onStageHunk, onUnstageHunk },
+    { stagedDiff, unstagedDiff, selectedFile, onStageHunk, onUnstageHunk, isFocused },
     ref,
   ): JSX.Element {
     const [collapsedFiles, setCollapsedFiles] = useState<Set<string>>(
@@ -122,12 +123,12 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
         scrollLineUp(): void {
           scrollRef.current?.scrollBy({ top: -20 });
         },
-        scrollToNextFile(): void {
+        scrollToNextFile(): string | null {
           const allNames = [
             ...stagedFiles.map((f) => f.name),
             ...unstagedFiles.map((f) => f.name),
           ];
-          if (allNames.length === 0) return;
+          if (allNames.length === 0) return null;
           navFileIndexRef.current = Math.min(
             navFileIndexRef.current + 1,
             allNames.length - 1,
@@ -135,17 +136,19 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
           fileRefs.current
             .get(allNames[navFileIndexRef.current])
             ?.scrollIntoView({ behavior: "smooth", block: "start" });
+          return allNames[navFileIndexRef.current];
         },
-        scrollToPrevFile(): void {
+        scrollToPrevFile(): string | null {
           const allNames = [
             ...stagedFiles.map((f) => f.name),
             ...unstagedFiles.map((f) => f.name),
           ];
-          if (allNames.length === 0) return;
+          if (allNames.length === 0) return null;
           navFileIndexRef.current = Math.max(navFileIndexRef.current - 1, 0);
           fileRefs.current
             .get(allNames[navFileIndexRef.current])
             ?.scrollIntoView({ behavior: "smooth", block: "start" });
+          return allNames[navFileIndexRef.current];
         },
       }),
       [stagedFiles, unstagedFiles],
@@ -271,7 +274,7 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
     );
 
     return (
-      <div className="diff-canvas">
+      <div className={`diff-canvas${isFocused ? ' diff-canvas--focused' : ''}`}>
         <div className="diff-canvas-toolbar">
           <div className="layout-toggle-group">
             <button

@@ -1,4 +1,4 @@
-import { JSX, useCallback, useRef, useState } from "react";
+import { JSX, useCallback, useEffect, useRef, useState } from "react";
 import { HookOutputPanel, type HookState } from "./HookOutputPanel";
 
 interface CommitAreaProps {
@@ -8,6 +8,7 @@ interface CommitAreaProps {
   onAmend: (message: string) => Promise<void>;
   onGetLastCommitMessage: () => Promise<string>;
   onForceCommit: (message: string) => Promise<void>;
+  isFocused: boolean;
 }
 
 export function CommitArea({
@@ -17,11 +18,16 @@ export function CommitArea({
   onAmend,
   onGetLastCommitMessage,
   onForceCommit,
+  isFocused,
 }: CommitAreaProps): JSX.Element {
   const [message, setMessage] = useState("");
   const [amend, setAmend] = useState(false);
   const [isCommitting, setIsCommitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isFocused) textareaRef.current?.focus();
+  }, [isFocused]);
 
   const canSubmit =
     !isCommitting &&
@@ -84,7 +90,7 @@ export function CommitArea({
   );
 
   return (
-    <div className="commit-area">
+    <div className={`commit-area${isFocused ? ' commit-area--focused' : ''}`}>
       <textarea
         ref={textareaRef}
         className="commit-message"

@@ -7,17 +7,24 @@ const DEFAULTS: Record<string, string> = {
   prevFile: 'Ctrl+K',
   commit: 'Cmd+Enter',
   toggleStage: 'Space',
+  focusLeft: 'Ctrl+H',
+  focusRight: 'Ctrl+L',
+}
+
+function normalizeKey(key: string): string {
+  if (key === 'Space') return ' '
+  return key.toLowerCase()
 }
 
 function matchesBinding(e: KeyboardEvent, binding: string): boolean {
   const parts = binding.split('+')
-  const key = parts[parts.length - 1]
+  const key = normalizeKey(parts[parts.length - 1])
   const hasCtrl = parts.includes('Ctrl')
   const hasCmd = parts.includes('Cmd')
   const hasAlt = parts.includes('Alt')
   const hasShift = parts.includes('Shift')
   return (
-    e.key === key &&
+    e.key.toLowerCase() === key &&
     e.ctrlKey === hasCtrl &&
     e.metaKey === hasCmd &&
     e.altKey === hasAlt &&

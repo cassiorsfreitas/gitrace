@@ -7,6 +7,7 @@ interface NavRailProps {
   onSelectRepo: (path: string) => void;
   onAddRepo: () => Promise<void>;
   onRemoveRepo: (path: string) => void;
+  isFocused?: boolean;
 }
 
 export function NavRail({
@@ -16,6 +17,7 @@ export function NavRail({
   onSelectRepo,
   onAddRepo,
   onRemoveRepo,
+  isFocused,
 }: NavRailProps): JSX.Element {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -29,7 +31,7 @@ export function NavRail({
   };
 
   return (
-    <nav className="nav-rail">
+    <nav className={`nav-rail${isFocused ? ' nav-rail--focused' : ''}`}>
       {/* Empty area reserved for macOS traffic lights */}
       <div className="nav-rail-traffic-spacer" />
 
@@ -93,29 +95,33 @@ export function NavRail({
         )}
       </div>
 
-      <div className="nav-rail-items">
-        <button className="nav-item nav-item--active">
-          <span className="nav-item-label">Changes</span>
-          {changedFilesCount > 0 && (
-            <span className="nav-item-badge">{changedFilesCount}</span>
-          )}
-        </button>
-        <button className="nav-item nav-item--disabled" disabled>
-          <span className="nav-item-label">History</span>
-        </button>
-        <button className="nav-item nav-item--disabled" disabled>
-          <span className="nav-item-label">Branches</span>
-        </button>
-        <button className="nav-item nav-item--disabled" disabled>
-          <span className="nav-item-label">Worktrees</span>
-        </button>
-      </div>
+      {activeRepo !== null && (
+        <>
+          <div className="nav-rail-items">
+            <button className={`nav-item nav-item--active${isFocused ? ' nav-item--cursor' : ''}`}>
+              <span className="nav-item-label">Changes</span>
+              {changedFilesCount > 0 && (
+                <span className="nav-item-badge">{changedFilesCount}</span>
+              )}
+            </button>
+            <button className="nav-item nav-item--disabled" disabled>
+              <span className="nav-item-label">History</span>
+            </button>
+            <button className="nav-item nav-item--disabled" disabled>
+              <span className="nav-item-label">Branches</span>
+            </button>
+            <button className="nav-item nav-item--disabled" disabled>
+              <span className="nav-item-label">Worktrees</span>
+            </button>
+          </div>
 
-      <div className="nav-rail-footer">
-        <button className="nav-item nav-item--disabled" disabled>
-          <span className="nav-item-label">Settings</span>
-        </button>
-      </div>
+          <div className="nav-rail-footer">
+            <button className="nav-item nav-item--disabled" disabled>
+              <span className="nav-item-label">Settings</span>
+            </button>
+          </div>
+        </>
+      )}
     </nav>
   );
 }

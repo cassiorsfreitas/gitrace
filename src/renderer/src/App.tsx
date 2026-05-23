@@ -1,5 +1,7 @@
 import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GitStatus, IpcEventPayload, TrackedFile } from "@shared/ipc";
+
+type FocusedColumn = 1 | 2 | 3 | 4;
 import { FileTreePanel } from "./components/FileTreePanel";
 import { DiffCanvas } from "./components/DiffCanvas";
 import type { DiffCanvasHandle } from "./components/DiffCanvas";
@@ -20,6 +22,8 @@ function App(): JSX.Element {
     output: [],
     exitCode: null,
   });
+
+  const [focusedColumn, setFocusedColumn] = useState<FocusedColumn>(2);
 
   const diffCanvasRef = useRef<DiffCanvasHandle>(null);
   const { matches } = useKeybindings();
@@ -43,6 +47,12 @@ function App(): JSX.Element {
   selectedFileRef.current = selectedFile;
   const matchesRef = useRef(matches);
   matchesRef.current = matches;
+  const focusedColumnRef = useRef<FocusedColumn>(2);
+  focusedColumnRef.current = focusedColumn;
+  const gitStatusRef = useRef<GitStatus | null>(gitStatus);
+  gitStatusRef.current = gitStatus;
+  const handleStageFileRef = useRef<(filePath: string) => Promise<void>>(null!);
+  const handleUnstageFileRef = useRef<(filePath: string) => Promise<void>>(null!);
 
   const refreshGitData = useCallback(
     async (repoPath: string): Promise<void> => {
@@ -106,39 +116,103 @@ function App(): JSX.Element {
     };
   }, []);
 
-  // Global keyboard navigation — inactive when textarea is focused
+  // Global keyboard navigation — column-aware
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
-      if (document.activeElement instanceof HTMLTextAreaElement) return;
+      const col = focusedColumnRef.current;
+      const isTextarea = document.activeElement instanceof HTMLTextAreaElement;
+      const m = matchesRef.current;
+
+      const isEscape = e.key === "Escape" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey;
+      const isFocusLeft = m(e, "focusLeft");
+      const isFocusRight = m(e, "focusRight");
+
+      // Focus-movement keys: always fire, even from textarea
+      if (isEscape || isFocusLeft) {
+        if (col > 1) {
+          e.preventDefault();
+          if (isTextarea) (document.activeElement as HTMLElement).blur();
+          setFocusedColumn((col - 1) as FocusedColumn);
+        }
+        return;
+      }
+
+      if (isFocusRight) {
+        const canAdvance = col < 4 && !(col === 2 && allFilesRef.current.length === 0);
+        if (canAdvance) {
+          e.preventDefault();
+          setFocusedColumn((col + 1) as FocusedColumn);
+        }
+        return;
+      }
+
+      // All other shortcuts blocked when textarea is focused
+      if (isTextarea) return;
 
       const files = allFilesRef.current;
       const current = selectedFileRef.current;
-      const m = matchesRef.current;
 
-      if (m(e, "nextLine")) {
+      // Enter: activate + advance
+      if (e.key === "Enter" && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
-        if (files.length > 0) {
-          const idx = current ? files.findIndex((f) => f.path === current) : -1;
-          const next = idx < files.length - 1 ? idx + 1 : idx;
-          const target = next >= 0 ? files[next] : files[0];
-          setSelectedFile(target.path);
+        if (col === 1) {
+          setFocusedColumn(2);
+        } else if (col === 2 && files.length > 0) {
+          if (!current) setSelectedFile(files[0].path);
+          setFocusedColumn(3);
+        } else if (col === 3) {
+          setFocusedColumn(4);
         }
-        diffCanvasRef.current?.scrollLineDown();
-      } else if (m(e, "prevLine")) {
-        e.preventDefault();
-        if (files.length > 0) {
-          const idx = current ? files.findIndex((f) => f.path === current) : -1;
-          if (idx > 0) {
-            setSelectedFile(files[idx - 1].path);
+        return;
+      }
+
+      // Column 2: file navigation + toggleStage
+      if (col === 2) {
+        if (m(e, "nextLine")) {
+          e.preventDefault();
+          if (files.length > 0) {
+            const idx = current ? files.findIndex((f) => f.path === current) : -1;
+            const next = idx < files.length - 1 ? idx + 1 : idx;
+            const target = next >= 0 ? files[next] : files[0];
+            setSelectedFile(target.path);
+          }
+        } else if (m(e, "prevLine")) {
+          e.preventDefault();
+          if (files.length > 0) {
+            const idx = current ? files.findIndex((f) => f.path === current) : -1;
+            if (idx > 0) setSelectedFile(files[idx - 1].path);
+          }
+        } else if (m(e, "toggleStage") && current) {
+          e.preventDefault();
+          const status = gitStatusRef.current;
+          const isStaged = status?.staged.some((f) => f.path === current) ?? false;
+          if (isStaged) {
+            handleUnstageFileRef.current(current);
+          } else {
+            handleStageFileRef.current(current);
           }
         }
-        diffCanvasRef.current?.scrollLineUp();
-      } else if (m(e, "nextFile")) {
-        e.preventDefault();
-        diffCanvasRef.current?.scrollToNextFile();
-      } else if (m(e, "prevFile")) {
-        e.preventDefault();
-        diffCanvasRef.current?.scrollToPrevFile();
+        return;
+      }
+
+      // Column 3: diff scroll + file jump
+      if (col === 3) {
+        if (m(e, "nextLine")) {
+          e.preventDefault();
+          diffCanvasRef.current?.scrollLineDown();
+        } else if (m(e, "prevLine")) {
+          e.preventDefault();
+          diffCanvasRef.current?.scrollLineUp();
+        } else if (m(e, "nextFile")) {
+          e.preventDefault();
+          const filename = diffCanvasRef.current?.scrollToNextFile();
+          if (filename) setSelectedFile(filename);
+        } else if (m(e, "prevFile")) {
+          e.preventDefault();
+          const filename = diffCanvasRef.current?.scrollToPrevFile();
+          if (filename) setSelectedFile(filename);
+        }
+        return;
       }
     };
 
@@ -207,6 +281,9 @@ function App(): JSX.Element {
     },
     [activeRepo, refreshGitData],
   );
+
+  handleStageFileRef.current = handleStageFile;
+  handleUnstageFileRef.current = handleUnstageFile;
 
   const handleStageAll = useCallback(async (): Promise<void> => {
     if (!activeRepo || !gitStatus?.unstaged.length) return;
@@ -301,8 +378,16 @@ function App(): JSX.Element {
     return msg as string;
   }, [activeRepo]);
 
+  const handleGlobalMouseDown = (e: React.MouseEvent): void => {
+    const target = e.target as Element;
+    if (target.closest('.nav-rail')) setFocusedColumn(1);
+    else if (target.closest('.file-tree-panel')) setFocusedColumn(2);
+    else if (target.closest('.diff-canvas')) setFocusedColumn(3);
+    else if (target.closest('.commit-area')) setFocusedColumn(4);
+  };
+
   return (
-    <div className="app">
+    <div className="app" onMouseDown={handleGlobalMouseDown}>
       <NavRail
         repos={repos}
         activeRepo={activeRepo}
@@ -310,6 +395,7 @@ function App(): JSX.Element {
         onSelectRepo={handleSelectRepo}
         onAddRepo={handleAddRepo}
         onRemoveRepo={handleRemoveRepo}
+        isFocused={focusedColumn === 1}
       />
       <div className="main-content">
         {activeRepo !== null ? (
@@ -322,6 +408,7 @@ function App(): JSX.Element {
               onUnstageFile={handleUnstageFile}
               onStageAll={handleStageAll}
               onUnstageAll={handleUnstageAll}
+              isFocused={focusedColumn === 2}
             />
             <DiffCanvas
               ref={diffCanvasRef}
@@ -330,6 +417,7 @@ function App(): JSX.Element {
               selectedFile={selectedFile}
               onStageHunk={handleStageHunk}
               onUnstageHunk={handleUnstageHunk}
+              isFocused={focusedColumn === 3}
             />
             <CommitArea
               stagedCount={gitStatus?.staged.length ?? 0}
@@ -338,6 +426,7 @@ function App(): JSX.Element {
               onAmend={handleAmend}
               onGetLastCommitMessage={handleGetLastCommitMessage}
               onForceCommit={handleForceCommit}
+              isFocused={focusedColumn === 4}
             />
           </>
         ) : (

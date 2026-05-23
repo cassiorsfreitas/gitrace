@@ -74,6 +74,7 @@ interface FileTreePanelProps {
   onUnstageFile: (path: string) => void;
   onStageAll: () => void;
   onUnstageAll: () => void;
+  isFocused?: boolean;
 }
 
 export function FileTreePanel({
@@ -84,12 +85,13 @@ export function FileTreePanel({
   onUnstageFile,
   onStageAll,
   onUnstageAll,
+  isFocused,
 }: FileTreePanelProps): JSX.Element {
   const staged = gitStatus?.staged ?? [];
   const unstaged = gitStatus?.unstaged ?? [];
 
   return (
-    <div className="file-tree-panel">
+    <div className={`file-tree-panel${isFocused ? ' file-tree-panel--focused' : ''}`}>
       <section className="file-tree-section">
         <div className="file-tree-section-header">
           <span>Staged</span>
