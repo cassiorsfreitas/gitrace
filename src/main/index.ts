@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, dialog, screen } from 'electron'
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { is } from '@electron-toolkit/utils'
@@ -119,12 +119,16 @@ function registerIpcHandlers(): void {
 }
 
 function createWindow(): void {
+  const { x, y, width, height } = screen.getPrimaryDisplay().workArea
+  const winWidth = Math.round(width * 0.9)
+  const winHeight = Math.round(height * 0.9)
   const win = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: winWidth,
+    height: winHeight,
+    x: x + Math.round((width - winWidth) / 2),
+    y: y + Math.round((height - winHeight) / 2),
     minWidth: 800,
     minHeight: 600,
-    center: true,
     show: false,
     autoHideMenuBar: true,
     // macOS native chrome: traffic lights inset over content (Raycast-like)
