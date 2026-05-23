@@ -40,10 +40,10 @@ body {
   background: var(--bg-primary);
 }
 
-/* Sidebar ------------------------------------------------------------------- */
+/* Nav rail ------------------------------------------------------------------ */
 
-.sidebar {
-  width: 260px;
+.nav-rail {
+  width: 200px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -51,28 +51,193 @@ body {
   border-right: 1px solid var(--border);
 }
 
-.sidebar-header {
+.nav-rail-header {
   height: 52px;
   display: flex;
   align-items: center;
   /* offset for macOS traffic lights (hiddenInset titlebar) */
   padding-left: 80px;
-  padding-right: 16px;
+  padding-right: 8px;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.repo-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  gap: 6px;
+  min-width: 0;
+}
+
+.repo-dropdown-trigger:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.repo-dropdown-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  text-align: left;
+}
+
+.repo-dropdown-chevron {
+  font-size: 8px;
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
-.app-title {
+.repo-dropdown-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+}
+
+.repo-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 8px;
+  right: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.repo-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  cursor: default;
+}
+
+.repo-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.repo-dropdown-item--active {
+  background: rgba(94, 155, 255, 0.12);
+}
+
+.repo-dropdown-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.repo-dropdown-item-remove {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.repo-dropdown-item-remove:hover {
+  color: var(--text-primary);
+}
+
+.repo-dropdown-empty {
+  padding: 8px 10px;
+  font-size: 11px;
   color: var(--text-secondary);
 }
 
-.sidebar-body {
+.repo-dropdown-add {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 7px 10px;
+  text-align: left;
+}
+
+.repo-dropdown-add:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+}
+
+.nav-rail-items {
   flex: 1;
-  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.nav-rail-footer {
+  padding: 4px 0 8px;
+  border-top: 1px solid var(--border);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 6px 14px;
+  cursor: pointer;
+  border-radius: 0;
+  text-align: left;
+}
+
+.nav-item--active {
+  color: var(--text-primary);
+}
+
+.nav-item--active:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-item--disabled {
+  color: var(--text-secondary);
+  opacity: 0.4;
+  cursor: default;
+}
+
+.nav-item-label {
+  flex: 1;
+}
+
+.nav-item-badge {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  flex-shrink: 0;
+  min-width: 18px;
+  text-align: center;
 }
 
 /* Main content -------------------------------------------------------------- */
@@ -294,77 +459,3 @@ body {
   color: var(--text-primary);
 }
 
-/* Repo list ----------------------------------------------------------------- */
-
-.repo-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 12px;
-  cursor: default;
-  border-bottom: 1px solid var(--border);
-}
-
-.repo-item:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.repo-item--active {
-  background: rgba(94, 155, 255, 0.12);
-}
-
-.repo-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  color: var(--text-primary);
-}
-
-.repo-remove {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  padding: 0 2px;
-  flex-shrink: 0;
-}
-
-.repo-remove:hover {
-  color: var(--text-primary);
-}
-
-/* Sidebar footer ------------------------------------------------------------ */
-
-.sidebar-footer {
-  padding: 10px 12px;
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.error-message {
-  color: #ff6b6b;
-  font-size: 11px;
-  margin-bottom: 8px;
-  word-break: break-word;
-}
-
-.add-repo-btn {
-  width: 100%;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  border-radius: 5px;
-  padding: 6px 10px;
-  font-size: 12px;
-  cursor: pointer;
-  text-align: left;
-  font-family: var(--font);
-}
-
-.add-repo-btn:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-primary);
-}

@@ -2,15 +2,18 @@ import { JSX, useCallback, useEffect, useState } from "react";
 import type { GitStatus, IpcEventPayload } from "@shared/ipc";
 import { FileTreePanel } from "./components/FileTreePanel";
 import { DiffCanvas } from "./components/DiffCanvas";
+import { NavRail } from "./components/NavRail";
 
 function App(): JSX.Element {
   const [repos, setRepos] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [activeRepo, setActiveRepo] = useState<string | null>(null);
   const [gitStatus, setGitStatus] = useState<GitStatus | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [stagedDiff, setStagedDiff] = useState<string | null>(null);
   const [unstagedDiff, setUnstagedDiff] = useState<string | null>(null);
+
+  const changedFilesCount =
+    (gitStatus?.staged.length ?? 0) + (gitStatus?.unstaged.length ?? 0);
 
   const refreshGitData = useCallback(
     async (repoPath: string): Promise<void> => {
@@ -53,7 +56,6 @@ function App(): JSX.Element {
   };
 
   const handleAddRepo = async (): Promise<void> => {
-    setError(null);
     try {
       const added = await window.electron.ipcRenderer.invoke(
         "repo:openPicker",
@@ -61,7 +63,7 @@ function App(): JSX.Element {
       );
       if (added) await refreshRepos();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add repository");
+      console.error(err instanceof Error ? err.message : "Failed to add repository");
     }
   };
 
@@ -88,40 +90,14 @@ function App(): JSX.Element {
 
   return (
     <div className="app">
-      <div className="sidebar">
-        <div className="sidebar-header">
-          <span className="app-title">Gitrace</span>
-        </div>
-        <div className="sidebar-body">
-          {repos.map((repo) => (
-            <div
-              key={repo}
-              className={`repo-item${activeRepo === repo ? " repo-item--active" : ""}`}
-              onClick={() => handleSelectRepo(repo)}
-            >
-              <span className="repo-name" title={repo}>
-                {repo.split("/").pop()}
-              </span>
-              <button
-                className="repo-remove"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemoveRepo(repo);
-                }}
-                title="Remove repository"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="sidebar-footer">
-          {error && <div className="error-message">{error}</div>}
-          <button className="add-repo-btn" onClick={handleAddRepo}>
-            + Add Repository
-          </button>
-        </div>
-      </div>
+      <NavRail
+        repos={repos}
+        activeRepo={activeRepo}
+        changedFilesCount={changedFilesCount}
+        onSelectRepo={handleSelectRepo}
+        onAddRepo={handleAddRepo}
+        onRemoveRepo={handleRemoveRepo}
+      />
       <div className="main-content">
         {activeRepo !== null ? (
           <>
