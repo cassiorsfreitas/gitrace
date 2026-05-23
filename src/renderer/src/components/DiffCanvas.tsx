@@ -169,7 +169,7 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
     const options = useMemo(
       () => ({
         diffStyle,
-        theme: { dark: "pierre-dark" as const, light: "pierre-light" as const },
+        theme: { dark: "pierre-dark-soft" as const, light: "pierre-light" as const },
         enableGutterUtility: true,
       }),
       [diffStyle],
