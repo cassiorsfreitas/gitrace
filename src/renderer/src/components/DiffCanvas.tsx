@@ -89,7 +89,7 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
     const stagedFiles = useMemo((): FileDiffMetadata[] => {
       if (!stagedDiff) return [];
       try {
-        return processPatch(stagedDiff, "staged").files;
+        return processPatch(stagedDiff).files;
       } catch {
         return [];
       }
@@ -98,7 +98,7 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
     const unstagedFiles = useMemo((): FileDiffMetadata[] => {
       if (!unstagedDiff) return [];
       try {
-        return processPatch(unstagedDiff, "unstaged").files;
+        return processPatch(unstagedDiff).files;
       } catch {
         return [];
       }
