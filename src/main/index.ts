@@ -120,6 +120,7 @@ function createWindow(): void {
     height: 800,
     minWidth: 800,
     minHeight: 600,
+    center: true,
     show: false,
     autoHideMenuBar: true,
     // macOS native chrome: traffic lights inset over content (Raycast-like)
