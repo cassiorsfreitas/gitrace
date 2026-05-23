@@ -88,6 +88,19 @@ export type IpcChannel = keyof IpcChannels
 export type IpcRequest<C extends IpcChannel> = IpcChannels[C]['request']
 export type IpcResponse<C extends IpcChannel> = IpcChannels[C]['response']
 
+// ── Push-event map (main → renderer via webContents.send / ipcRenderer.on) ───
+
+export interface IpcEvents {
+  'git:changed': { repoPath: string }
+}
+
+export type IpcEvent = keyof IpcEvents
+export type IpcEventPayload<E extends IpcEvent> = IpcEvents[E]
+
+export const IPC_EVENTS = {
+  GIT_CHANGED: 'git:changed',
+} as const satisfies Record<string, IpcEvent>
+
 // ── Channel name constants (runtime values for ipcMain.handle / invoke) ───────
 
 export const IPC = {

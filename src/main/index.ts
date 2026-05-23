@@ -5,10 +5,12 @@ import { is } from '@electron-toolkit/utils'
 import { RepoStore } from './store/RepoStore'
 import { KeybindingStore } from './store/KeybindingStore'
 import { GitService } from './git/GitService'
-import { IPC, type IpcRequest } from '../shared/ipc'
+import { GitWatcher } from './git/GitWatcher'
+import { IPC, IPC_EVENTS, type IpcRequest, type IpcEventPayload } from '../shared/ipc'
 
 let repoStore: RepoStore
 const gitService = new GitService()
+const gitWatcher = new GitWatcher()
 
 function registerIpcHandlers(): void {
   ipcMain.handle(IPC.GIT_STATUS, (_, req: IpcRequest<'git:getStatus'>) =>
@@ -27,10 +29,12 @@ function registerIpcHandlers(): void {
 
   ipcMain.handle(IPC.REPO_ADD, (_, req: IpcRequest<'repo:add'>) => {
     repoStore.addRepo(req.repoPath)
+    gitWatcher.watch(req.repoPath)
   })
 
   ipcMain.handle(IPC.REPO_REMOVE, (_, req: IpcRequest<'repo:remove'>) => {
     repoStore.removeRepo(req.repoPath)
+    gitWatcher.unwatch(req.repoPath)
   })
 
   ipcMain.handle(IPC.REPO_OPEN_PICKER, async () => {
@@ -42,6 +46,7 @@ function registerIpcHandlers(): void {
       throw new Error(`Not a git repository: ${selectedPath}`)
     }
     repoStore.addRepo(selectedPath)
+    gitWatcher.watch(selectedPath)
     return selectedPath
   })
 
@@ -91,7 +96,25 @@ function createWindow(): void {
 app.whenReady().then(() => {
   repoStore = new RepoStore(app.getPath('userData'))
   const keybindingStore = new KeybindingStore()
-  app.on('before-quit', () => keybindingStore.destroy())
+
+  // Watch repos already persisted from a previous session
+  for (const repoPath of repoStore.getAll()) {
+    gitWatcher.watch(repoPath)
+  }
+
+  // Push file-change events to the renderer
+  gitWatcher.on('changed', (repoPath: string) => {
+    const payload: IpcEventPayload<'git:changed'> = { repoPath }
+    BrowserWindow.getAllWindows().forEach((w) => {
+      w.webContents.send(IPC_EVENTS.GIT_CHANGED, payload)
+    })
+  })
+
+  app.on('before-quit', () => {
+    gitWatcher.destroy()
+    keybindingStore.destroy()
+  })
+
   registerIpcHandlers()
   createWindow()
 

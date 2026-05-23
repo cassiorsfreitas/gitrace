@@ -1,14 +1,39 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import type { IpcEventPayload } from '@shared/ipc'
 
 function App(): JSX.Element {
   const [repos, setRepos] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [activeRepo, setActiveRepo] = useState<string | null>(null)
+
+  const refreshGitData = useCallback(
+    async (repoPath: string): Promise<void> => {
+      await Promise.all([
+        window.electron.ipcRenderer.invoke('git:getStatus', { repoPath }),
+        window.electron.ipcRenderer.invoke('git:getStagedDiff', { repoPath }),
+        window.electron.ipcRenderer.invoke('git:getUnstagedDiff', { repoPath })
+      ])
+    },
+    []
+  )
 
   useEffect(() => {
     window.electron.ipcRenderer
       .invoke('repo:getAll', {})
       .then((r: unknown) => setRepos(r as string[]))
   }, [])
+
+  useEffect(() => {
+    const handler = (_event: unknown, payload: IpcEventPayload<'git:changed'>): void => {
+      if (payload.repoPath === activeRepo) {
+        refreshGitData(payload.repoPath)
+      }
+    }
+    window.electron.ipcRenderer.on('git:changed', handler)
+    return (): void => {
+      window.electron.ipcRenderer.removeListener('git:changed', handler)
+    }
+  }, [activeRepo, refreshGitData])
 
   const refreshRepos = async (): Promise<void> => {
     const r = await window.electron.ipcRenderer.invoke('repo:getAll', {})
@@ -25,8 +50,14 @@ function App(): JSX.Element {
     }
   }
 
+  const handleSelectRepo = (repoPath: string): void => {
+    setActiveRepo(repoPath)
+    refreshGitData(repoPath)
+  }
+
   const handleRemoveRepo = async (repoPath: string): Promise<void> => {
     await window.electron.ipcRenderer.invoke('repo:remove', { repoPath })
+    if (activeRepo === repoPath) setActiveRepo(null)
     await refreshRepos()
   }
 
@@ -38,7 +69,11 @@ function App(): JSX.Element {
         </div>
         <div className="sidebar-body">
           {repos.map((repo) => (
-            <div key={repo} className="repo-item">
+            <div
+              key={repo}
+              className={`repo-item${activeRepo === repo ? ' repo-item--active' : ''}`}
+              onClick={() => handleSelectRepo(repo)}
+            >
               <span className="repo-name" title={repo}>
                 {repo.split('/').pop()}
               </span>
