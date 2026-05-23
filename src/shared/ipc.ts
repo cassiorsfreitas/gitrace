@@ -16,6 +16,8 @@ export type FileStatus = 'M' | 'A' | 'D' | 'R' | 'C' | '?'
 export interface TrackedFile {
   path: string
   status: FileStatus
+  added?: number
+  removed?: number
 }
 
 export interface GitStatus {

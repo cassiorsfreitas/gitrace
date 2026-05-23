@@ -62,6 +62,16 @@ function FileRow({ file, checked, focused, onToggle, onSelect }: FileRowProps): 
         <span className="file-row-name">{name}</span>
         {dir && <span className="file-row-dir">{dir}</span>}
       </div>
+      {(file.added !== undefined || file.removed !== undefined) && (
+        <div className="file-row-stat">
+          {!!file.added && (
+            <span className="file-row-stat-added">+{file.added}</span>
+          )}
+          {!!file.removed && (
+            <span className="file-row-stat-removed">−{file.removed}</span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -89,12 +99,18 @@ export function FileTreePanel({
 }: FileTreePanelProps): JSX.Element {
   const staged = gitStatus?.staged ?? [];
   const unstaged = gitStatus?.unstaged ?? [];
+  const totalFiles = staged.length + unstaged.length;
 
   return (
     <div className={`file-tree-panel${isFocused ? ' file-tree-panel--focused' : ''}`}>
+      <div className="file-tree-panel-header">
+        <span>Working Tree</span>
+        <span className="file-tree-panel-total">{totalFiles} {totalFiles === 1 ? 'file' : 'files'}</span>
+      </div>
+
       <section className="file-tree-section">
         <div className="file-tree-section-header">
-          <span>Staged</span>
+          <span>Staged Changes</span>
           <div className="file-tree-section-actions">
             <span className="file-count">{staged.length}</span>
             {staged.length > 0 && (
@@ -124,7 +140,7 @@ export function FileTreePanel({
 
       <section className="file-tree-section">
         <div className="file-tree-section-header">
-          <span>Unstaged</span>
+          <span>Changes</span>
           <div className="file-tree-section-actions">
             <span className="file-count">{unstaged.length}</span>
             {unstaged.length > 0 && (

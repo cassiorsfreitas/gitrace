@@ -9,10 +9,11 @@
 :root {
   --bg-primary: #1a1a1a;
   --bg-secondary: #222222;
+  --bg-badge: #383838;
   --text-primary: #e8e8e8;
   --text-secondary: #888888;
   --border: rgba(255, 255, 255, 0.07);
-  --accent: #5e9bff;
+  --accent: #F85623;
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
 
   color-scheme: dark;
@@ -23,13 +24,13 @@
   --trees-fg-override: #e8e8e8;
   --trees-fg-muted-override: #888888;
   --trees-border-color-override: rgba(255, 255, 255, 0.07);
-  --trees-accent-override: #5e9bff;
+  --trees-accent-override: #F85623;
   --trees-font-family-override: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
   --trees-font-size-override: 12px;
-  --trees-selected-bg-override: rgba(94, 155, 255, 0.18);
+  --trees-selected-bg-override: rgba(248, 86, 35, 0.18);
   --trees-selected-fg-override: #e8e8e8;
-  --trees-selected-focused-border-color-override: #5e9bff;
-  --trees-focus-ring-color-override: rgba(94, 155, 255, 0.5);
+  --trees-selected-focused-border-color-override: #F85623;
+  --trees-focus-ring-color-override: rgba(248, 86, 35, 0.5);
   --trees-scrollbar-thumb-override: rgba(255, 255, 255, 0.15);
   --trees-indent-guide-bg-override: rgba(255, 255, 255, 0.06);
   --trees-input-bg-override: #222222;
@@ -162,7 +163,7 @@ body {
 }
 
 .repo-dropdown-item--active {
-  background: rgba(94, 155, 255, 0.12);
+  background: rgba(248, 86, 35, 0.12);
 }
 
 .repo-dropdown-item-name {
@@ -241,10 +242,15 @@ body {
 
 .nav-item--active {
   color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .nav-item--active:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-rail--focused .nav-item--cursor {
+  background: rgba(248, 86, 35, 0.15);
 }
 
 .nav-item--disabled {
@@ -258,16 +264,19 @@ body {
 }
 
 .nav-item-badge {
-  background: var(--accent);
-  color: #fff;
+  background: var(--bg-badge);
+  color: var(--text-secondary);
   border-radius: 8px;
   padding: 1px 6px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   flex-shrink: 0;
   min-width: 18px;
-  text-align: center;
+  min-height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Main content -------------------------------------------------------------- */
@@ -301,6 +310,30 @@ body {
   flex-direction: column;
   border-right: 1px solid var(--border);
   overflow-y: auto;
+}
+
+.file-tree-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.file-tree-panel-total {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-secondary);
+  opacity: 0.7;
 }
 
 .file-tree-section {
@@ -384,11 +417,19 @@ body {
 }
 
 .file-row--focused {
-  background: rgba(94, 155, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .file-row--focused:hover {
-  background: rgba(94, 155, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.file-tree-panel--focused .file-row--focused {
+  background: rgba(248, 86, 35, 0.12);
+}
+
+.file-tree-panel--focused .file-row--focused:hover {
+  background: rgba(248, 86, 35, 0.18);
 }
 
 .file-row-checkbox {
@@ -403,23 +444,40 @@ body {
   flex-shrink: 0;
   font-size: 10px;
   font-weight: 700;
-  width: 14px;
-  text-align: center;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
   letter-spacing: 0;
 }
 
-.status-modified  { color: #e2a94b; }
-.status-added     { color: #57c26d; }
-.status-deleted   { color: #e06c75; }
-.status-renamed   { color: #61afef; }
-.status-untracked { color: #888888; }
+.status-modified  { color: #e2a94b; background: rgba(226, 169, 75, 0.15); }
+.status-added     { color: #57c26d; background: rgba(87, 194, 109, 0.15); }
+.status-deleted   { color: #e06c75; background: rgba(224, 108, 117, 0.15); }
+.status-renamed   { color: #61afef; background: rgba(97, 175, 239, 0.15); }
+.status-untracked { color: #888888; background: rgba(136, 136, 136, 0.15); }
 
 .file-row-info {
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-width: 0;
   gap: 1px;
 }
+
+.file-row-stat {
+  flex-shrink: 0;
+  display: flex;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.file-row-stat-added   { color: #57c26d; }
+.file-row-stat-removed { color: #e06c75; }
 
 .file-row-name {
   font-size: 12px;
@@ -687,7 +745,7 @@ body {
 }
 
 .commit-btn--primary:hover:not(:disabled) {
-  background: #4a8aef;
+  background: #d94010;
   color: #fff;
 }
 
@@ -695,17 +753,19 @@ body {
   opacity: 0.3;
 }
 
-/* Focused column indicator -------------------------------------------------- */
-
-.nav-rail--focused,
-.file-tree-panel--focused,
-.diff-canvas--focused,
-.commit-area--focused {
-  box-shadow: inset 0 0 0 1px rgba(94, 155, 255, 0.35);
+.commit-btn--icon {
+  flex: 0;
+  width: 30px;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* Focused column indicator -------------------------------------------------- */
+
 .nav-item--cursor {
-  background: rgba(94, 155, 255, 0.15);
+  background: rgba(248, 86, 35, 0.15);
 }
 
 /* HookOutputPanel ----------------------------------------------------------- */

@@ -7,17 +7,42 @@ import type { GitStatus, TrackedFile, FileStatus } from '../../shared/ipc'
 export class GitService {
   async getStatus(repoPath: string): Promise<GitStatus> {
     const git = simpleGit(repoPath)
-    const status = await git.status()
+
+    const [status, stagedNumstatRaw, unstagedNumstatRaw] = await Promise.all([
+      git.status(),
+      git.diff(['--cached', '--numstat']).catch(() => ''),
+      git.diff(['--numstat']).catch(() => ''),
+    ])
+
+    const parseNumstat = (raw: string): Map<string, { added: number; removed: number }> => {
+      const map = new Map<string, { added: number; removed: number }>()
+      for (const line of raw.split('\n')) {
+        const parts = line.split('\t')
+        if (parts.length < 3) continue
+        const [a, r, ...rest] = parts
+        const filePath = rest.join('\t')
+        map.set(filePath, {
+          added: a === '-' ? 0 : parseInt(a, 10) || 0,
+          removed: r === '-' ? 0 : parseInt(r, 10) || 0,
+        })
+      }
+      return map
+    }
+
+    const stagedStats = parseNumstat(stagedNumstatRaw)
+    const unstagedStats = parseNumstat(unstagedNumstatRaw)
 
     const staged: TrackedFile[] = []
     const unstaged: TrackedFile[] = []
 
     for (const file of status.files) {
       if (file.index !== ' ' && file.index !== '' && file.index !== '?') {
-        staged.push({ path: file.path, status: file.index as FileStatus })
+        const stats = stagedStats.get(file.path)
+        staged.push({ path: file.path, status: file.index as FileStatus, ...stats })
       }
       if (file.working_dir !== ' ' && file.working_dir !== '') {
-        unstaged.push({ path: file.path, status: file.working_dir as FileStatus })
+        const stats = unstagedStats.get(file.path)
+        unstaged.push({ path: file.path, status: file.working_dir as FileStatus, ...stats })
       }
     }
 
