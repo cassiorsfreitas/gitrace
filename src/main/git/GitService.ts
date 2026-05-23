@@ -13,7 +13,7 @@ export class GitService {
     const unstaged: TrackedFile[] = []
 
     for (const file of status.files) {
-      if (file.index !== ' ' && file.index !== '') {
+      if (file.index !== ' ' && file.index !== '' && file.index !== '?') {
         staged.push({ path: file.path, status: file.index as FileStatus })
       }
       if (file.working_dir !== ' ' && file.working_dir !== '') {
