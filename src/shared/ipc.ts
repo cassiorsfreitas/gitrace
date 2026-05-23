@@ -94,6 +94,10 @@ export interface IpcChannels {
     request: { index: number }
     response: void
   }
+  'keybindings:getAll': {
+    request: Record<string, never>
+    response: Record<string, string>
+  }
 }
 
 export type IpcChannel = keyof IpcChannels
@@ -107,6 +111,7 @@ export interface IpcEvents {
   'hook:start': { hookName: string }
   'hook:data': { chunk: string }
   'hook:exit': { code: number }
+  'keybindings:changed': Record<string, string>
 }
 
 export type IpcEvent = keyof IpcEvents
@@ -117,6 +122,7 @@ export const IPC_EVENTS = {
   HOOK_START: 'hook:start',
   HOOK_DATA: 'hook:data',
   HOOK_EXIT: 'hook:exit',
+  KEYBINDINGS_CHANGED: 'keybindings:changed',
 } as const satisfies Record<string, IpcEvent>
 
 // ── Channel name constants (runtime values for ipcMain.handle / invoke) ───────
@@ -139,4 +145,5 @@ export const IPC = {
   REPO_OPEN_PICKER: 'repo:openPicker',
   REPO_REORDER: 'repo:reorder',
   REPO_SET_ACTIVE_INDEX: 'repo:setActiveIndex',
+  KEYBINDINGS_GET_ALL: 'keybindings:getAll',
 } as const satisfies Record<string, IpcChannel>

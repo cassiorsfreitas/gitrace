@@ -6,7 +6,8 @@
       "Bash(git:*)",
       "Bash(gh label:*)",
       "Bash(gh issue:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx vitest:*)"
     ]
   }
 }

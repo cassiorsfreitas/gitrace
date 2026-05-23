@@ -355,6 +355,14 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.file-row--focused {
+  background: rgba(94, 155, 255, 0.12);
+}
+
+.file-row--focused:hover {
+  background: rgba(94, 155, 255, 0.18);
+}
+
 .file-row-checkbox {
   flex-shrink: 0;
   width: 14px;

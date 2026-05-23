@@ -70,6 +70,10 @@ export class KeybindingStore extends EventEmitter {
     return this.bindings[action] ?? ''
   }
 
+  getAll(): Bindings {
+    return { ...this.bindings }
+  }
+
   destroy(): void {
     if (this.debounceTimer) clearTimeout(this.debounceTimer)
     this.watcher?.close()

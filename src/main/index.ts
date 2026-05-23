@@ -10,6 +10,7 @@ import { HookRunner } from './git/HookRunner'
 import { IPC, IPC_EVENTS, type IpcRequest, type IpcEventPayload } from '../shared/ipc'
 
 let repoStore: RepoStore
+let keybindingStore: KeybindingStore
 const gitService = new GitService()
 const gitWatcher = new GitWatcher()
 
@@ -109,6 +110,8 @@ function registerIpcHandlers(): void {
   ipcMain.handle(IPC.REPO_SET_ACTIVE_INDEX, (_, req: IpcRequest<'repo:setActiveIndex'>) => {
     repoStore.setActiveIndex(req.index)
   })
+
+  ipcMain.handle(IPC.KEYBINDINGS_GET_ALL, () => keybindingStore.getAll())
 }
 
 function createWindow(): void {
@@ -147,7 +150,7 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   repoStore = new RepoStore(app.getPath('userData'))
-  const keybindingStore = new KeybindingStore()
+  keybindingStore = new KeybindingStore()
 
   // Watch repos already persisted from a previous session
   for (const repoPath of repoStore.getAll()) {
@@ -159,6 +162,14 @@ app.whenReady().then(() => {
     const payload: IpcEventPayload<'git:changed'> = { repoPath }
     BrowserWindow.getAllWindows().forEach((w) => {
       w.webContents.send(IPC_EVENTS.GIT_CHANGED, payload)
+    })
+  })
+
+  // Push keybinding reload events to the renderer
+  keybindingStore.on('reload', () => {
+    const bindings = keybindingStore.getAll()
+    BrowserWindow.getAllWindows().forEach((w) => {
+      w.webContents.send(IPC_EVENTS.KEYBINDINGS_CHANGED, bindings)
     })
   })
 

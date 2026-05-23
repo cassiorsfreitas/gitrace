@@ -1,10 +1,12 @@
-import { JSX, useCallback, useEffect, useState } from "react";
-import type { GitStatus, IpcEventPayload } from "@shared/ipc";
+import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { GitStatus, IpcEventPayload, TrackedFile } from "@shared/ipc";
 import { FileTreePanel } from "./components/FileTreePanel";
 import { DiffCanvas } from "./components/DiffCanvas";
+import type { DiffCanvasHandle } from "./components/DiffCanvas";
 import { NavRail } from "./components/NavRail";
 import { CommitArea } from "./components/CommitArea";
 import type { HookState } from "./components/HookOutputPanel";
+import { useKeybindings } from "./hooks/useKeybindings";
 
 function App(): JSX.Element {
   const [repos, setRepos] = useState<string[]>([]);
@@ -19,8 +21,28 @@ function App(): JSX.Element {
     exitCode: null,
   });
 
+  const diffCanvasRef = useRef<DiffCanvasHandle>(null);
+  const { matches } = useKeybindings();
+
   const changedFilesCount =
     (gitStatus?.staged.length ?? 0) + (gitStatus?.unstaged.length ?? 0);
+
+  // Flat ordered list of all files for keyboard navigation
+  const allFiles = useMemo(
+    (): TrackedFile[] => [
+      ...(gitStatus?.staged ?? []),
+      ...(gitStatus?.unstaged ?? []),
+    ],
+    [gitStatus],
+  );
+
+  // Stable refs so the keyboard handler never goes stale
+  const allFilesRef = useRef<TrackedFile[]>(allFiles);
+  allFilesRef.current = allFiles;
+  const selectedFileRef = useRef<string | null>(selectedFile);
+  selectedFileRef.current = selectedFile;
+  const matchesRef = useRef(matches);
+  matchesRef.current = matches;
 
   const refreshGitData = useCallback(
     async (repoPath: string): Promise<void> => {
@@ -83,6 +105,46 @@ function App(): JSX.Element {
       window.electron.ipcRenderer.removeListener("hook:exit", onExit);
     };
   }, []);
+
+  // Global keyboard navigation — inactive when textarea is focused
+  useEffect(() => {
+    const handler = (e: KeyboardEvent): void => {
+      if (document.activeElement instanceof HTMLTextAreaElement) return;
+
+      const files = allFilesRef.current;
+      const current = selectedFileRef.current;
+      const m = matchesRef.current;
+
+      if (m(e, "nextLine")) {
+        e.preventDefault();
+        if (files.length > 0) {
+          const idx = current ? files.findIndex((f) => f.path === current) : -1;
+          const next = idx < files.length - 1 ? idx + 1 : idx;
+          const target = next >= 0 ? files[next] : files[0];
+          setSelectedFile(target.path);
+        }
+        diffCanvasRef.current?.scrollLineDown();
+      } else if (m(e, "prevLine")) {
+        e.preventDefault();
+        if (files.length > 0) {
+          const idx = current ? files.findIndex((f) => f.path === current) : -1;
+          if (idx > 0) {
+            setSelectedFile(files[idx - 1].path);
+          }
+        }
+        diffCanvasRef.current?.scrollLineUp();
+      } else if (m(e, "nextFile")) {
+        e.preventDefault();
+        diffCanvasRef.current?.scrollToNextFile();
+      } else if (m(e, "prevFile")) {
+        e.preventDefault();
+        diffCanvasRef.current?.scrollToPrevFile();
+      }
+    };
+
+    document.addEventListener("keydown", handler);
+    return (): void => document.removeEventListener("keydown", handler);
+  }, []); // stable via refs — no deps needed
 
   const refreshRepos = async (): Promise<void> => {
     const r = await window.electron.ipcRenderer.invoke("repo:getAll", {});
@@ -254,6 +316,7 @@ function App(): JSX.Element {
           <>
             <FileTreePanel
               gitStatus={gitStatus}
+              selectedFile={selectedFile}
               onFileSelect={setSelectedFile}
               onStageFile={handleStageFile}
               onUnstageFile={handleUnstageFile}
@@ -261,6 +324,7 @@ function App(): JSX.Element {
               onUnstageAll={handleUnstageAll}
             />
             <DiffCanvas
+              ref={diffCanvasRef}
               stagedDiff={stagedDiff}
               unstagedDiff={unstagedDiff}
               selectedFile={selectedFile}

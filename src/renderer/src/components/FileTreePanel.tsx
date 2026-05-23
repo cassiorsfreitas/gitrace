@@ -31,16 +31,20 @@ function dirname(p: string): string {
 interface FileRowProps {
   file: TrackedFile;
   checked: boolean;
+  focused: boolean;
   onToggle: (path: string) => void;
   onSelect: (path: string) => void;
 }
 
-function FileRow({ file, checked, onToggle, onSelect }: FileRowProps): JSX.Element {
+function FileRow({ file, checked, focused, onToggle, onSelect }: FileRowProps): JSX.Element {
   const name = basename(file.path);
   const dir = dirname(file.path);
 
   return (
-    <div className="file-row" onClick={() => onSelect(file.path)}>
+    <div
+      className={`file-row${focused ? " file-row--focused" : ""}`}
+      onClick={() => onSelect(file.path)}
+    >
       <input
         type="checkbox"
         className="file-row-checkbox"
@@ -64,6 +68,7 @@ function FileRow({ file, checked, onToggle, onSelect }: FileRowProps): JSX.Eleme
 
 interface FileTreePanelProps {
   gitStatus: GitStatus | null;
+  selectedFile: string | null;
   onFileSelect: (path: string) => void;
   onStageFile: (path: string) => void;
   onUnstageFile: (path: string) => void;
@@ -73,6 +78,7 @@ interface FileTreePanelProps {
 
 export function FileTreePanel({
   gitStatus,
+  selectedFile,
   onFileSelect,
   onStageFile,
   onUnstageFile,
@@ -103,6 +109,7 @@ export function FileTreePanel({
                 key={file.path}
                 file={file}
                 checked={true}
+                focused={file.path === selectedFile}
                 onToggle={onUnstageFile}
                 onSelect={onFileSelect}
               />
@@ -132,6 +139,7 @@ export function FileTreePanel({
                 key={file.path}
                 file={file}
                 checked={false}
+                focused={file.path === selectedFile}
                 onToggle={onStageFile}
                 onSelect={onFileSelect}
               />
