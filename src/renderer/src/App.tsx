@@ -88,6 +88,76 @@ function App(): JSX.Element {
     await refreshRepos();
   };
 
+  const handleStageFile = useCallback(
+    async (filePath: string): Promise<void> => {
+      if (!activeRepo) return;
+      await window.electron.ipcRenderer.invoke("git:stageFile", {
+        repoPath: activeRepo,
+        filePath,
+      });
+      await refreshGitData(activeRepo);
+    },
+    [activeRepo, refreshGitData],
+  );
+
+  const handleUnstageFile = useCallback(
+    async (filePath: string): Promise<void> => {
+      if (!activeRepo) return;
+      await window.electron.ipcRenderer.invoke("git:unstageFile", {
+        repoPath: activeRepo,
+        filePath,
+      });
+      await refreshGitData(activeRepo);
+    },
+    [activeRepo, refreshGitData],
+  );
+
+  const handleStageAll = useCallback(async (): Promise<void> => {
+    if (!activeRepo || !gitStatus?.unstaged.length) return;
+    for (const file of gitStatus.unstaged) {
+      await window.electron.ipcRenderer.invoke("git:stageFile", {
+        repoPath: activeRepo,
+        filePath: file.path,
+      });
+    }
+    await refreshGitData(activeRepo);
+  }, [activeRepo, gitStatus, refreshGitData]);
+
+  const handleUnstageAll = useCallback(async (): Promise<void> => {
+    if (!activeRepo || !gitStatus?.staged.length) return;
+    for (const file of gitStatus.staged) {
+      await window.electron.ipcRenderer.invoke("git:unstageFile", {
+        repoPath: activeRepo,
+        filePath: file.path,
+      });
+    }
+    await refreshGitData(activeRepo);
+  }, [activeRepo, gitStatus, refreshGitData]);
+
+  const handleStageHunk = useCallback(
+    async (patch: string): Promise<void> => {
+      if (!activeRepo) return;
+      await window.electron.ipcRenderer.invoke("git:stageHunk", {
+        repoPath: activeRepo,
+        patch,
+      });
+      await refreshGitData(activeRepo);
+    },
+    [activeRepo, refreshGitData],
+  );
+
+  const handleUnstageHunk = useCallback(
+    async (patch: string): Promise<void> => {
+      if (!activeRepo) return;
+      await window.electron.ipcRenderer.invoke("git:unstageHunk", {
+        repoPath: activeRepo,
+        patch,
+      });
+      await refreshGitData(activeRepo);
+    },
+    [activeRepo, refreshGitData],
+  );
+
   return (
     <div className="app">
       <NavRail
@@ -104,11 +174,17 @@ function App(): JSX.Element {
             <FileTreePanel
               gitStatus={gitStatus}
               onFileSelect={setSelectedFile}
+              onStageFile={handleStageFile}
+              onUnstageFile={handleUnstageFile}
+              onStageAll={handleStageAll}
+              onUnstageAll={handleUnstageAll}
             />
             <DiffCanvas
               stagedDiff={stagedDiff}
               unstagedDiff={unstagedDiff}
               selectedFile={selectedFile}
+              onStageHunk={handleStageHunk}
+              onUnstageHunk={handleUnstageHunk}
             />
           </>
         ) : (

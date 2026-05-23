@@ -299,6 +299,12 @@ body {
   flex-shrink: 0;
 }
 
+.file-tree-section-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .file-count {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 8px;
@@ -307,6 +313,109 @@ body {
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
+}
+
+.file-tree-action-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0;
+  padding: 2px 6px;
+  text-transform: none;
+  transition: background 0.1s, color 0.1s;
+}
+
+.file-tree-action-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+
+/* File list with checkboxes ------------------------------------------------ */
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s;
+}
+
+.file-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.file-row-checkbox {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.file-row-status {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  width: 14px;
+  text-align: center;
+  letter-spacing: 0;
+}
+
+.status-modified  { color: #e2a94b; }
+.status-added     { color: #57c26d; }
+.status-deleted   { color: #e06c75; }
+.status-renamed   { color: #61afef; }
+.status-untracked { color: #888888; }
+
+.file-row-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.file-row-name {
+  font-size: 12px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-row-dir {
+  font-size: 10px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stage-hunk-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 2px 6px;
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
+}
+
+.stage-hunk-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
 }
 
 .file-tree {

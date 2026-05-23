@@ -1,81 +1,84 @@
-import { JSX, useEffect, useRef } from "react";
-import { FileTree, useFileTree } from "@pierre/trees/react";
-import { FILE_TREE_DEFAULT_ITEM_HEIGHT } from "@pierre/trees";
-import type { GitStatus as PierreGitStatus } from "@pierre/trees";
-import type { FileStatus, GitStatus } from "@shared/ipc";
+import { JSX } from "react";
+import type { FileStatus, GitStatus, TrackedFile } from "@shared/ipc";
 
-function treeHeight(paths: string[]): number {
-  const dirs = new Set<string>();
-  for (const p of paths) {
-    const segments = p.split("/");
-    for (let i = 1; i < segments.length; i++) {
-      dirs.add(segments.slice(0, i).join("/"));
-    }
-  }
-  return (paths.length + dirs.size) * FILE_TREE_DEFAULT_ITEM_HEIGHT;
+const STATUS_LABEL: Record<FileStatus, string> = {
+  M: "M",
+  A: "A",
+  D: "D",
+  R: "R",
+  C: "C",
+  "?": "U",
+};
+
+const STATUS_CLASS: Record<FileStatus, string> = {
+  M: "status-modified",
+  A: "status-added",
+  D: "status-deleted",
+  R: "status-renamed",
+  C: "status-added",
+  "?": "status-untracked",
+};
+
+function basename(p: string): string {
+  return p.split("/").pop() ?? p;
 }
 
-function mapStatus(status: FileStatus): PierreGitStatus {
-  switch (status) {
-    case "M":
-      return "modified";
-    case "A":
-      return "added";
-    case "D":
-      return "deleted";
-    case "R":
-      return "renamed";
-    case "C":
-      return "added";
-    case "?":
-      return "untracked";
-  }
+function dirname(p: string): string {
+  const idx = p.lastIndexOf("/");
+  return idx > 0 ? p.slice(0, idx) : "";
+}
+
+interface FileRowProps {
+  file: TrackedFile;
+  checked: boolean;
+  onToggle: (path: string) => void;
+  onSelect: (path: string) => void;
+}
+
+function FileRow({ file, checked, onToggle, onSelect }: FileRowProps): JSX.Element {
+  const name = basename(file.path);
+  const dir = dirname(file.path);
+
+  return (
+    <div className="file-row" onClick={() => onSelect(file.path)}>
+      <input
+        type="checkbox"
+        className="file-row-checkbox"
+        checked={checked}
+        onChange={(e) => {
+          e.stopPropagation();
+          onToggle(file.path);
+        }}
+        onClick={(e) => e.stopPropagation()}
+      />
+      <span className={`file-row-status ${STATUS_CLASS[file.status]}`}>
+        {STATUS_LABEL[file.status]}
+      </span>
+      <div className="file-row-info">
+        <span className="file-row-name">{name}</span>
+        {dir && <span className="file-row-dir">{dir}</span>}
+      </div>
+    </div>
+  );
 }
 
 interface FileTreePanelProps {
   gitStatus: GitStatus | null;
   onFileSelect: (path: string) => void;
+  onStageFile: (path: string) => void;
+  onUnstageFile: (path: string) => void;
+  onStageAll: () => void;
+  onUnstageAll: () => void;
 }
 
 export function FileTreePanel({
   gitStatus,
   onFileSelect,
+  onStageFile,
+  onUnstageFile,
+  onStageAll,
+  onUnstageAll,
 }: FileTreePanelProps): JSX.Element {
-  const onFileSelectRef = useRef(onFileSelect);
-  onFileSelectRef.current = onFileSelect;
-
-  const { model: stagedModel } = useFileTree({
-    paths: [],
-    initialExpansion: "open",
-    onSelectionChange: (paths) => {
-      if (paths.length > 0) onFileSelectRef.current(paths[0]);
-    },
-  });
-
-  const { model: unstagedModel } = useFileTree({
-    paths: [],
-    initialExpansion: "open",
-    onSelectionChange: (paths) => {
-      if (paths.length > 0) onFileSelectRef.current(paths[0]);
-    },
-  });
-
-  useEffect(() => {
-    const staged = gitStatus?.staged ?? [];
-    stagedModel.resetPaths(staged.map((f) => f.path));
-    stagedModel.setGitStatus(
-      staged.map((f) => ({ path: f.path, status: mapStatus(f.status) })),
-    );
-  }, [stagedModel, gitStatus]);
-
-  useEffect(() => {
-    const unstaged = gitStatus?.unstaged ?? [];
-    unstagedModel.resetPaths(unstaged.map((f) => f.path));
-    unstagedModel.setGitStatus(
-      unstaged.map((f) => ({ path: f.path, status: mapStatus(f.status) })),
-    );
-  }, [unstagedModel, gitStatus]);
-
   const staged = gitStatus?.staged ?? [];
   const unstaged = gitStatus?.unstaged ?? [];
 
@@ -84,29 +87,56 @@ export function FileTreePanel({
       <section className="file-tree-section">
         <div className="file-tree-section-header">
           <span>Staged</span>
-          <span className="file-count">{staged.length}</span>
+          <div className="file-tree-section-actions">
+            <span className="file-count">{staged.length}</span>
+            {staged.length > 0 && (
+              <button className="file-tree-action-btn" onClick={onUnstageAll}>
+                Unstage All
+              </button>
+            )}
+          </div>
         </div>
         {staged.length > 0 ? (
-          <FileTree
-            model={stagedModel}
-            className="file-tree"
-            style={{ height: treeHeight(staged.map((f) => f.path)) }}
-          />
+          <div className="file-list">
+            {staged.map((file) => (
+              <FileRow
+                key={file.path}
+                file={file}
+                checked={true}
+                onToggle={onUnstageFile}
+                onSelect={onFileSelect}
+              />
+            ))}
+          </div>
         ) : (
           <div className="file-tree-empty">No staged changes</div>
         )}
       </section>
+
       <section className="file-tree-section">
         <div className="file-tree-section-header">
           <span>Unstaged</span>
-          <span className="file-count">{unstaged.length}</span>
+          <div className="file-tree-section-actions">
+            <span className="file-count">{unstaged.length}</span>
+            {unstaged.length > 0 && (
+              <button className="file-tree-action-btn" onClick={onStageAll}>
+                Stage All
+              </button>
+            )}
+          </div>
         </div>
         {unstaged.length > 0 ? (
-          <FileTree
-            model={unstagedModel}
-            className="file-tree"
-            style={{ height: treeHeight(unstaged.map((f) => f.path)) }}
-          />
+          <div className="file-list">
+            {unstaged.map((file) => (
+              <FileRow
+                key={file.path}
+                file={file}
+                checked={false}
+                onToggle={onStageFile}
+                onSelect={onFileSelect}
+              />
+            ))}
+          </div>
         ) : (
           <div className="file-tree-empty">No unstaged changes</div>
         )}

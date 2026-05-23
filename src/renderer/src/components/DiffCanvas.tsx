@@ -1,24 +1,72 @@
 import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FileDiff } from "@pierre/diffs/react";
 import { processPatch } from "@pierre/diffs";
-import type { FileDiffMetadata } from "@pierre/diffs";
+import type { AnnotationSide, FileDiffMetadata, Hunk } from "@pierre/diffs";
+
+function findHunkForLine(
+  hunks: Hunk[],
+  lineNumber: number,
+  side: AnnotationSide,
+): number {
+  for (let i = 0; i < hunks.length; i++) {
+    const hunk = hunks[i];
+    const start = side === "additions" ? hunk.additionStart : hunk.deletionStart;
+    const count = side === "additions" ? hunk.additionCount : hunk.deletionCount;
+    if (lineNumber >= start && lineNumber < start + count) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function extractHunkPatch(
+  rawDiff: string,
+  fileName: string,
+  hunkIndex: number,
+): string | null {
+  const sections = rawDiff.split(/^(?=diff --git )/m);
+  const section = sections.find((s) =>
+    s.split("\n").some((l) => l === `+++ b/${fileName}`),
+  );
+  if (!section) return null;
+
+  const firstHunkPos = section.search(/^@@/m);
+  if (firstHunkPos < 0) return null;
+
+  const header = section.slice(0, firstHunkPos);
+  const hunksStr = section.slice(firstHunkPos);
+  const hunkParts = hunksStr.split(/(?=^@@ )/m);
+
+  if (hunkIndex >= hunkParts.length) return null;
+  return header + hunkParts[hunkIndex];
+}
 
 interface DiffCanvasProps {
   stagedDiff: string | null;
   unstagedDiff: string | null;
   selectedFile: string | null;
+  onStageHunk: (patch: string) => void;
+  onUnstageHunk: (patch: string) => void;
 }
 
 export function DiffCanvas({
   stagedDiff,
   unstagedDiff,
   selectedFile,
+  onStageHunk,
+  onUnstageHunk,
 }: DiffCanvasProps): JSX.Element {
   const [collapsedFiles, setCollapsedFiles] = useState<Set<string>>(
     () => new Set(),
   );
   const [diffStyle, setDiffStyle] = useState<"unified" | "split">("unified");
   const fileRefs = useRef(new Map<string, HTMLDivElement>());
+
+  const onStageHunkRef = useRef(onStageHunk);
+  onStageHunkRef.current = onStageHunk;
+
+  const onUnstageHunkRef = useRef(onUnstageHunk);
+  onUnstageHunkRef.current = onUnstageHunk;
 
   const stagedFiles = useMemo((): FileDiffMetadata[] => {
     if (!stagedDiff) return [];
@@ -60,6 +108,7 @@ export function DiffCanvas({
     () => ({
       diffStyle,
       theme: { dark: "pierre-dark" as const, light: "pierre-light" as const },
+      enableGutterUtility: true,
     }),
     [diffStyle],
   );
@@ -76,9 +125,42 @@ export function DiffCanvas({
     [toggleCollapse],
   );
 
+  const makeGutterUtility = useCallback(
+    (file: FileDiffMetadata, rawDiff: string, isStaged: boolean) =>
+      (
+        getHoveredLine: () => { lineNumber: number; side: AnnotationSide } | undefined,
+      ): JSX.Element => {
+        const handleClick = (): void => {
+          const hovered = getHoveredLine();
+          if (!hovered) return;
+          const hunkIdx = findHunkForLine(
+            file.hunks,
+            hovered.lineNumber,
+            hovered.side,
+          );
+          if (hunkIdx < 0) return;
+          const patch = extractHunkPatch(rawDiff, file.name, hunkIdx);
+          if (!patch) return;
+          if (isStaged) {
+            onUnstageHunkRef.current(patch);
+          } else {
+            onStageHunkRef.current(patch);
+          }
+        };
+        return (
+          <button className="stage-hunk-btn" onClick={handleClick}>
+            {isStaged ? "Unstage hunk" : "Stage hunk"}
+          </button>
+        );
+      },
+    [],
+  );
+
   const renderSection = (
     files: FileDiffMetadata[],
     label: string,
+    rawDiff: string | null,
+    isStaged: boolean,
   ): JSX.Element => (
     <section className="diff-section">
       <div className="diff-section-header">
@@ -114,6 +196,11 @@ export function DiffCanvas({
                   fileDiff={file}
                   options={options}
                   renderHeaderPrefix={renderHeaderPrefix}
+                  renderGutterUtility={
+                    rawDiff
+                      ? makeGutterUtility(file, rawDiff, isStaged)
+                      : undefined
+                  }
                   disableWorkerPool
                 />
               )}
@@ -149,8 +236,8 @@ export function DiffCanvas({
           </div>
         ) : (
           <>
-            {renderSection(stagedFiles, "Staged")}
-            {renderSection(unstagedFiles, "Unstaged")}
+            {renderSection(stagedFiles, "Staged", stagedDiff, true)}
+            {renderSection(unstagedFiles, "Unstaged", unstagedDiff, false)}
           </>
         )}
       </div>
