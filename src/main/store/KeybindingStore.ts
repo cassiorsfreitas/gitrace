@@ -16,6 +16,7 @@ const DEFAULTS: Bindings = {
   stepBack: 'Backspace',
   focusLeft: 'Ctrl+H',
   focusRight: 'Ctrl+L',
+  openInEditor: 'o',
 }
 
 export class KeybindingStore extends EventEmitter {
