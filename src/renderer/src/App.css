@@ -278,6 +278,10 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.nav-item--active svg {
+  color: var(--accent);
+}
+
 .nav-item--active:hover {
   background: rgba(255, 255, 255, 0.08);
 }
