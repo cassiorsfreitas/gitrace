@@ -3,6 +3,7 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { is } from '@electron-toolkit/utils'
 import { RepoStore } from './store/RepoStore'
+import { KeybindingStore } from './store/KeybindingStore'
 import { GitService } from './git/GitService'
 import { IPC, type IpcRequest } from '../shared/ipc'
 
@@ -89,6 +90,8 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   repoStore = new RepoStore(app.getPath('userData'))
+  const keybindingStore = new KeybindingStore()
+  app.on('before-quit', () => keybindingStore.destroy())
   registerIpcHandlers()
   createWindow()
 
