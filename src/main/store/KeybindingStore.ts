@@ -12,7 +12,9 @@ const DEFAULTS: Bindings = {
   nextFile: 'Ctrl+J',
   prevFile: 'Ctrl+K',
   commit: 'Cmd+Enter',
-  toggleStage: 'Space'
+  toggleStage: 'Space',
+  focusLeft: 'Ctrl+H',
+  focusRight: 'Ctrl+L',
 }
 
 export class KeybindingStore extends EventEmitter {
