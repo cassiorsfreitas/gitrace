@@ -51,13 +51,15 @@ body {
   border-right: 1px solid var(--border);
 }
 
-.nav-rail-header {
-  height: 52px;
-  display: flex;
-  align-items: center;
-  /* offset for macOS traffic lights (hiddenInset titlebar) */
-  padding-left: 80px;
-  padding-right: 8px;
+.nav-rail-traffic-spacer {
+  /* Height matches trafficLightPosition y:16 + button diameter ~14px + padding */
+  height: 44px;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+
+.nav-rail-repo-section {
+  padding: 0 8px 8px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   position: relative;
@@ -75,10 +77,11 @@ body {
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  padding: 4px 6px;
+  padding: 6px 8px;
   border-radius: 4px;
   gap: 6px;
   min-width: 0;
+  -webkit-app-region: no-drag;
 }
 
 .repo-dropdown-trigger:hover {
@@ -107,9 +110,9 @@ body {
 
 .repo-dropdown-menu {
   position: absolute;
-  top: calc(100% + 2px);
-  left: 8px;
-  right: 8px;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 6px;

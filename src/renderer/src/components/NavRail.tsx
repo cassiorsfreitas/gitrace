@@ -30,7 +30,11 @@ export function NavRail({
 
   return (
     <nav className="nav-rail">
-      <div className="nav-rail-header">
+      {/* Empty area reserved for macOS traffic lights */}
+      <div className="nav-rail-traffic-spacer" />
+
+      {/* Repo dropdown — below traffic lights, above nav items */}
+      <div className="nav-rail-repo-section">
         <button
           className="repo-dropdown-trigger"
           onClick={() => setDropdownOpen((o) => !o)}
