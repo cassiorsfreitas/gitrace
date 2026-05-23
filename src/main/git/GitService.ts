@@ -67,4 +67,20 @@ export class GitService {
       rmSync(tmpDir, { recursive: true, force: true })
     }
   }
+
+  async commit(repoPath: string, message: string): Promise<void> {
+    const git = simpleGit(repoPath)
+    await git.commit(message)
+  }
+
+  async amendCommit(repoPath: string, message: string): Promise<void> {
+    const git = simpleGit(repoPath)
+    await git.raw(['commit', '--amend', '-m', message])
+  }
+
+  async getLastCommitMessage(repoPath: string): Promise<string> {
+    const git = simpleGit(repoPath)
+    const result = await git.raw(['log', '-1', '--format=%B'])
+    return result.trim()
+  }
 }

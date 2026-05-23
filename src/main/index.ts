@@ -41,6 +41,18 @@ function registerIpcHandlers(): void {
     gitService.unstageHunk(req.repoPath, req.patch)
   )
 
+  ipcMain.handle(IPC.GIT_COMMIT, (_, req: IpcRequest<'git:commit'>) =>
+    gitService.commit(req.repoPath, req.message)
+  )
+
+  ipcMain.handle(IPC.GIT_AMEND_COMMIT, (_, req: IpcRequest<'git:amendCommit'>) =>
+    gitService.amendCommit(req.repoPath, req.message)
+  )
+
+  ipcMain.handle(IPC.GIT_LAST_COMMIT_MESSAGE, (_, req: IpcRequest<'git:getLastCommitMessage'>) =>
+    gitService.getLastCommitMessage(req.repoPath)
+  )
+
   ipcMain.handle(IPC.REPO_GET_ALL, () => repoStore.getAll())
 
   ipcMain.handle(IPC.REPO_ADD, (_, req: IpcRequest<'repo:add'>) => {

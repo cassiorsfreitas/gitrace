@@ -3,6 +3,7 @@ import type { GitStatus, IpcEventPayload } from "@shared/ipc";
 import { FileTreePanel } from "./components/FileTreePanel";
 import { DiffCanvas } from "./components/DiffCanvas";
 import { NavRail } from "./components/NavRail";
+import { CommitArea } from "./components/CommitArea";
 
 function App(): JSX.Element {
   const [repos, setRepos] = useState<string[]>([]);
@@ -158,6 +159,30 @@ function App(): JSX.Element {
     [activeRepo, refreshGitData],
   );
 
+  const handleCommit = useCallback(
+    async (message: string): Promise<void> => {
+      if (!activeRepo) return;
+      await window.electron.ipcRenderer.invoke("git:commit", {
+        repoPath: activeRepo,
+        message,
+      });
+      await refreshGitData(activeRepo);
+    },
+    [activeRepo, refreshGitData],
+  );
+
+  const handleAmend = useCallback(
+    async (message: string): Promise<void> => {
+      if (!activeRepo) return;
+      await window.electron.ipcRenderer.invoke("git:amendCommit", {
+        repoPath: activeRepo,
+        message,
+      });
+      await refreshGitData(activeRepo);
+    },
+    [activeRepo, refreshGitData],
+  );
+
   return (
     <div className="app">
       <NavRail
@@ -185,6 +210,11 @@ function App(): JSX.Element {
               selectedFile={selectedFile}
               onStageHunk={handleStageHunk}
               onUnstageHunk={handleUnstageHunk}
+            />
+            <CommitArea
+              stagedCount={gitStatus?.staged.length ?? 0}
+              onCommit={handleCommit}
+              onAmend={handleAmend}
             />
           </>
         ) : (

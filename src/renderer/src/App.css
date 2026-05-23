@@ -573,3 +573,89 @@ body {
   color: var(--text-primary);
 }
 
+/* CommitArea ---------------------------------------------------------------- */
+
+.commit-area {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  background: var(--bg-primary);
+  padding: 12px;
+  gap: 10px;
+}
+
+.commit-message {
+  flex: 1;
+  min-height: 120px;
+  resize: none;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px 10px;
+  outline: none;
+  transition: border-color 0.1s;
+}
+
+.commit-message::placeholder {
+  color: var(--text-secondary);
+}
+
+.commit-message:focus {
+  border-color: var(--accent);
+}
+
+.commit-message:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.commit-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.commit-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 10px;
+  transition: background 0.1s, color 0.1s;
+}
+
+.commit-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+
+.commit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.commit-btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.commit-btn--primary:hover:not(:disabled) {
+  background: #4a8aef;
+  color: #fff;
+}
+
+.commit-btn--placeholder {
+  opacity: 0.3;
+}
+
