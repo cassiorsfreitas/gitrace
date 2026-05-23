@@ -1,21 +1,22 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { IpcEventPayload } from '@shared/ipc'
+import type { GitStatus, IpcEventPayload } from '@shared/ipc'
+import { FileTreePanel } from './components/FileTreePanel'
 
 function App(): JSX.Element {
   const [repos, setRepos] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [activeRepo, setActiveRepo] = useState<string | null>(null)
+  const [gitStatus, setGitStatus] = useState<GitStatus | null>(null)
+  const [selectedFile, setSelectedFile] = useState<string | null>(null)
 
-  const refreshGitData = useCallback(
-    async (repoPath: string): Promise<void> => {
-      await Promise.all([
-        window.electron.ipcRenderer.invoke('git:getStatus', { repoPath }),
-        window.electron.ipcRenderer.invoke('git:getStagedDiff', { repoPath }),
-        window.electron.ipcRenderer.invoke('git:getUnstagedDiff', { repoPath })
-      ])
-    },
-    []
-  )
+  const refreshGitData = useCallback(async (repoPath: string): Promise<void> => {
+    const [status] = await Promise.all([
+      window.electron.ipcRenderer.invoke('git:getStatus', { repoPath }),
+      window.electron.ipcRenderer.invoke('git:getStagedDiff', { repoPath }),
+      window.electron.ipcRenderer.invoke('git:getUnstagedDiff', { repoPath })
+    ])
+    setGitStatus(status as GitStatus)
+  }, [])
 
   useEffect(() => {
     window.electron.ipcRenderer
@@ -52,12 +53,18 @@ function App(): JSX.Element {
 
   const handleSelectRepo = (repoPath: string): void => {
     setActiveRepo(repoPath)
+    setGitStatus(null)
+    setSelectedFile(null)
     refreshGitData(repoPath)
   }
 
   const handleRemoveRepo = async (repoPath: string): Promise<void> => {
     await window.electron.ipcRenderer.invoke('repo:remove', { repoPath })
-    if (activeRepo === repoPath) setActiveRepo(null)
+    if (activeRepo === repoPath) {
+      setActiveRepo(null)
+      setGitStatus(null)
+      setSelectedFile(null)
+    }
     await refreshRepos()
   }
 
@@ -79,7 +86,10 @@ function App(): JSX.Element {
               </span>
               <button
                 className="repo-remove"
-                onClick={() => handleRemoveRepo(repo)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleRemoveRepo(repo)
+                }}
                 title="Remove repository"
               >
                 ×
@@ -94,10 +104,19 @@ function App(): JSX.Element {
           </button>
         </div>
       </div>
-      <div className="main-content">
-        <div className="empty-state">
-          <p>{repos.length === 0 ? 'Add a repository to get started.' : 'Select a repository.'}</p>
-        </div>
+      <div className="main-content" data-selected-file={selectedFile ?? undefined}>
+        {activeRepo !== null ? (
+          <FileTreePanel
+            gitStatus={gitStatus}
+            onFileSelect={setSelectedFile}
+          />
+        ) : (
+          <div className="empty-state">
+            <p>
+              {repos.length === 0 ? 'Add a repository to get started.' : 'Select a repository.'}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )
