@@ -35,6 +35,10 @@ function registerIpcHandlers(): void {
     gitService.unstageFile(req.repoPath, req.filePath)
   )
 
+  ipcMain.handle(IPC.GIT_DISCARD_FILE, (_, req: IpcRequest<'git:discardFile'>) =>
+    gitService.discardFile(req.repoPath, req.filePath)
+  )
+
   ipcMain.handle(IPC.GIT_STAGE_HUNK, (_, req: IpcRequest<'git:stageHunk'>) =>
     gitService.stageHunk(req.repoPath, req.patch)
   )

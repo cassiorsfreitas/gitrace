@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { FileDiff } from "@pierre/diffs/react";
 import { processPatch } from "@pierre/diffs";
 import type { AnnotationSide, FileDiffMetadata, Hunk } from "@pierre/diffs";
@@ -181,7 +182,7 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
           className="diff-collapse-btn"
           onClick={() => toggleCollapse(fd.name)}
         >
-          ▼
+          <ChevronDown size={14} strokeWidth={1.5} />
         </button>
       ),
       [toggleCollapse],
@@ -250,7 +251,7 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
                     className="diff-file-collapsed"
                     onClick={() => toggleCollapse(file.name)}
                   >
-                    <span className="collapse-icon">▶</span>
+                    <ChevronRight size={14} strokeWidth={1.5} className="collapse-icon" />
                     <span className="diff-filename">{file.name}</span>
                   </div>
                 ) : (

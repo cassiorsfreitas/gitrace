@@ -69,6 +69,11 @@ export class GitService {
     await git.reset(['HEAD', '--', filePath])
   }
 
+  async discardFile(repoPath: string, filePath: string): Promise<void> {
+    const git = simpleGit(repoPath)
+    await git.checkout(['--', filePath])
+  }
+
   async stageHunk(repoPath: string, patch: string): Promise<void> {
     const tmpDir = mkdtempSync(join(tmpdir(), 'gitrace-patch-'))
     const patchFile = join(tmpDir, 'hunk.patch')

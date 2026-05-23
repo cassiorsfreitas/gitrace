@@ -1,4 +1,5 @@
 import { JSX } from "react";
+import { Undo2 } from "lucide-react";
 import type { FileStatus, GitStatus, TrackedFile } from "@shared/ipc";
 
 const STATUS_LABEL: Record<FileStatus, string> = {
@@ -34,9 +35,17 @@ interface FileRowProps {
   focused: boolean;
   onToggle: (path: string) => void;
   onSelect: (path: string) => void;
+  onDiscard?: (path: string) => void;
 }
 
-function FileRow({ file, checked, focused, onToggle, onSelect }: FileRowProps): JSX.Element {
+function FileRow({
+  file,
+  checked,
+  focused,
+  onToggle,
+  onSelect,
+  onDiscard,
+}: FileRowProps): JSX.Element {
   const name = basename(file.path);
   const dir = dirname(file.path);
 
@@ -72,6 +81,18 @@ function FileRow({ file, checked, focused, onToggle, onSelect }: FileRowProps): 
           )}
         </div>
       )}
+      {onDiscard && (
+        <button
+          className="file-row-discard"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDiscard(file.path);
+          }}
+          title="Discard changes"
+        >
+          <Undo2 size={14} strokeWidth={1.5} />
+        </button>
+      )}
     </div>
   );
 }
@@ -82,6 +103,7 @@ interface FileTreePanelProps {
   onFileSelect: (path: string) => void;
   onStageFile: (path: string) => void;
   onUnstageFile: (path: string) => void;
+  onDiscardFile: (path: string) => void;
   onStageAll: () => void;
   onUnstageAll: () => void;
   isFocused?: boolean;
@@ -93,6 +115,7 @@ export function FileTreePanel({
   onFileSelect,
   onStageFile,
   onUnstageFile,
+  onDiscardFile,
   onStageAll,
   onUnstageAll,
   isFocused,
@@ -102,15 +125,19 @@ export function FileTreePanel({
   const totalFiles = staged.length + unstaged.length;
 
   return (
-    <div className={`file-tree-panel${isFocused ? ' file-tree-panel--focused' : ''}`}>
+    <div
+      className={`file-tree-panel${isFocused ? " file-tree-panel--focused" : ""}`}
+    >
       <div className="file-tree-panel-header">
         <span>Working Tree</span>
-        <span className="file-tree-panel-total">{totalFiles} {totalFiles === 1 ? 'file' : 'files'}</span>
+        <span className="file-tree-panel-total">
+          {totalFiles} {totalFiles === 1 ? "file" : "files"}
+        </span>
       </div>
 
       <section className="file-tree-section">
         <div className="file-tree-section-header">
-          <span>Staged Changes</span>
+          <span className="file-tree-status-title">Staged Changes</span>
           <div className="file-tree-section-actions">
             <span className="file-count">{staged.length}</span>
             {staged.length > 0 && (
@@ -140,7 +167,7 @@ export function FileTreePanel({
 
       <section className="file-tree-section">
         <div className="file-tree-section-header">
-          <span>Changes</span>
+          <span className="file-tree-status-title">Changes</span>
           <div className="file-tree-section-actions">
             <span className="file-count">{unstaged.length}</span>
             {unstaged.length > 0 && (
@@ -160,6 +187,7 @@ export function FileTreePanel({
                 focused={file.path === selectedFile}
                 onToggle={onStageFile}
                 onSelect={onFileSelect}
+                onDiscard={onDiscardFile}
               />
             ))}
           </div>

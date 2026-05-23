@@ -1,4 +1,5 @@
 import { JSX, useCallback, useEffect, useRef, useState } from "react";
+import { GitCommit } from "lucide-react";
 import { HookOutputPanel, type HookState } from "./HookOutputPanel";
 
 interface CommitAreaProps {
@@ -104,6 +105,7 @@ export function CommitArea({
           onClick={handleSubmit}
           disabled={!canSubmit}
         >
+          <GitCommit size={14} strokeWidth={1.5} />
           Commit
         </button>
         <button

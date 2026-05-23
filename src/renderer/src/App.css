@@ -96,18 +96,16 @@ body {
 .repo-dropdown-trigger {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  text-align: left;
   width: 100%;
   background: none;
   border: none;
   color: var(--text-primary);
   font-family: var(--font);
-  font-size: 12px;
-  font-weight: 500;
   cursor: pointer;
   padding: 6px 8px;
   border-radius: 4px;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   -webkit-app-region: no-drag;
 }
@@ -116,18 +114,53 @@ body {
   background: rgba(255, 255, 255, 0.06);
 }
 
+.repo-dropdown-avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: #4B2116;
+  color: var(--accent);
+}
+
+.repo-dropdown-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
 .repo-dropdown-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
-  text-align: left;
+  width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.repo-dropdown-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-secondary);
 }
 
 .repo-dropdown-chevron {
-  font-size: 8px;
+  display: flex;
+  align-items: center;
   color: var(--text-secondary);
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .repo-dropdown-overlay {
@@ -176,12 +209,12 @@ body {
 }
 
 .repo-dropdown-item-remove {
+  display: flex;
+  align-items: center;
   background: none;
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
   padding: 0 2px;
   flex-shrink: 0;
 }
@@ -228,7 +261,7 @@ body {
 .nav-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   width: 100%;
   background: none;
   border: none;
@@ -403,6 +436,7 @@ body {
 }
 
 .file-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -479,6 +513,36 @@ body {
 .file-row-stat-added   { color: #57c26d; }
 .file-row-stat-removed { color: #e06c75; }
 
+.file-row-discard {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s, background 0.1s;
+}
+
+.file-row:hover .file-row-discard {
+  opacity: 1;
+  background: var(--bg-badge);
+}
+
+.file-row-discard:hover {
+  color: #e06c75;
+  background: rgba(224, 108, 117, 0.12);
+}
+
 .file-row-name {
   font-size: 12px;
   color: var(--text-primary);
@@ -520,6 +584,10 @@ body {
   padding: 10px 12px;
   font-size: 12px;
   color: var(--text-secondary);
+}
+
+.file-tree-status-title {
+  font-size: 7pt;
 }
 
 /* DiffCanvas ---------------------------------------------------------------- */
@@ -654,13 +722,13 @@ body {
 }
 
 .diff-collapse-btn {
+  display: flex;
+  align-items: center;
   background: none;
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 9px;
   padding: 0 4px;
-  line-height: 1;
 }
 
 .diff-collapse-btn:hover {
@@ -716,6 +784,10 @@ body {
 
 .commit-btn {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 5px;

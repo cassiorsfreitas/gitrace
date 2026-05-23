@@ -7,6 +7,7 @@ const DEFAULTS: Record<string, string> = {
   prevFile: 'Ctrl+K',
   commit: 'Cmd+Enter',
   toggleStage: 'Space',
+  stepBack: 'Backspace',
   focusLeft: 'Ctrl+H',
   focusRight: 'Ctrl+L',
 }

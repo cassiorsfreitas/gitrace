@@ -53,6 +53,7 @@ function App(): JSX.Element {
   gitStatusRef.current = gitStatus;
   const handleStageFileRef = useRef<(filePath: string) => Promise<void>>(null!);
   const handleUnstageFileRef = useRef<(filePath: string) => Promise<void>>(null!);
+  const handleDiscardFileRef = useRef<(filePath: string) => Promise<void>>(null!);
 
   const refreshGitData = useCallback(
     async (repoPath: string): Promise<void> => {
@@ -191,6 +192,15 @@ function App(): JSX.Element {
           } else {
             handleStageFileRef.current(current);
           }
+        } else if (m(e, "stepBack") && current) {
+          e.preventDefault();
+          const status = gitStatusRef.current;
+          const isStaged = status?.staged.some((f) => f.path === current) ?? false;
+          if (isStaged) {
+            handleUnstageFileRef.current(current);
+          } else {
+            handleDiscardFileRef.current(current);
+          }
         }
         return;
       }
@@ -282,8 +292,21 @@ function App(): JSX.Element {
     [activeRepo, refreshGitData],
   );
 
+  const handleDiscardFile = useCallback(
+    async (filePath: string): Promise<void> => {
+      if (!activeRepo) return;
+      await window.electron.ipcRenderer.invoke("git:discardFile", {
+        repoPath: activeRepo,
+        filePath,
+      });
+      await refreshGitData(activeRepo);
+    },
+    [activeRepo, refreshGitData],
+  );
+
   handleStageFileRef.current = handleStageFile;
   handleUnstageFileRef.current = handleUnstageFile;
+  handleDiscardFileRef.current = handleDiscardFile;
 
   const handleStageAll = useCallback(async (): Promise<void> => {
     if (!activeRepo || !gitStatus?.unstaged.length) return;
@@ -406,6 +429,7 @@ function App(): JSX.Element {
               onFileSelect={setSelectedFile}
               onStageFile={handleStageFile}
               onUnstageFile={handleUnstageFile}
+              onDiscardFile={handleDiscardFile}
               onStageAll={handleStageAll}
               onUnstageAll={handleUnstageAll}
               isFocused={focusedColumn === 2}

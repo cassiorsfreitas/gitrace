@@ -1,4 +1,14 @@
 import { JSX, useState } from "react";
+import {
+  ChevronUp,
+  ChevronDown,
+  X,
+  GitCommit,
+  History,
+  GitBranch,
+  Layers,
+  Settings,
+} from "lucide-react";
 
 interface NavRailProps {
   repos: string[];
@@ -25,6 +35,10 @@ export function NavRail({
     ? (activeRepo.split("/").pop() ?? activeRepo)
     : "Select Repository";
 
+  const activeRepoShortPath = activeRepo
+    ? activeRepo.split("/").slice(-2).join("/")
+    : null;
+
   const handleAddRepo = async (): Promise<void> => {
     await onAddRepo();
     setDropdownOpen(false);
@@ -42,9 +56,21 @@ export function NavRail({
           onClick={() => setDropdownOpen((o) => !o)}
           title={activeRepo ?? undefined}
         >
-          <span className="repo-dropdown-name">{activeRepoName}</span>
+          {activeRepo && (
+            <div className="repo-dropdown-avatar">
+              <GitBranch size={14} strokeWidth={1.5} />
+            </div>
+          )}
+          <div className="repo-dropdown-info">
+            <span className="repo-dropdown-name">{activeRepoName}</span>
+            {activeRepoShortPath && (
+              <span className="repo-dropdown-path">{activeRepoShortPath}</span>
+            )}
+          </div>
           <span className="repo-dropdown-chevron">
-            {dropdownOpen ? "▲" : "▼"}
+            {dropdownOpen
+              ? <ChevronUp size={14} strokeWidth={1.5} />
+              : <ChevronDown size={14} strokeWidth={1.5} />}
           </span>
         </button>
 
@@ -80,7 +106,7 @@ export function NavRail({
                     }}
                     title="Remove repository"
                   >
-                    ×
+                    <X size={14} strokeWidth={1.5} />
                   </button>
                 </div>
               ))}
@@ -99,24 +125,29 @@ export function NavRail({
         <>
           <div className="nav-rail-items">
             <button className={`nav-item nav-item--active${isFocused ? ' nav-item--cursor' : ''}`}>
+              <GitCommit size={14} strokeWidth={1.5} />
               <span className="nav-item-label">Changes</span>
               {changedFilesCount > 0 && (
                 <span className="nav-item-badge">{changedFilesCount}</span>
               )}
             </button>
             <button className="nav-item nav-item--disabled" disabled>
+              <History size={14} strokeWidth={1.5} />
               <span className="nav-item-label">History</span>
             </button>
             <button className="nav-item nav-item--disabled" disabled>
+              <GitBranch size={14} strokeWidth={1.5} />
               <span className="nav-item-label">Branches</span>
             </button>
             <button className="nav-item nav-item--disabled" disabled>
+              <Layers size={14} strokeWidth={1.5} />
               <span className="nav-item-label">Worktrees</span>
             </button>
           </div>
 
           <div className="nav-rail-footer">
             <button className="nav-item nav-item--disabled" disabled>
+              <Settings size={14} strokeWidth={1.5} />
               <span className="nav-item-label">Settings</span>
             </button>
           </div>

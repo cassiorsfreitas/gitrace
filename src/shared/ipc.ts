@@ -40,6 +40,10 @@ export interface IpcChannels {
     request: { repoPath: string; filePath: string }
     response: void
   }
+  'git:discardFile': {
+    request: { repoPath: string; filePath: string }
+    response: void
+  }
   'git:stageHunk': {
     request: { repoPath: string; patch: string }
     response: void
@@ -133,6 +137,7 @@ export const IPC = {
   GIT_STATUS: 'git:getStatus',
   GIT_STAGE_FILE: 'git:stageFile',
   GIT_UNSTAGE_FILE: 'git:unstageFile',
+  GIT_DISCARD_FILE: 'git:discardFile',
   GIT_STAGE_HUNK: 'git:stageHunk',
   GIT_UNSTAGE_HUNK: 'git:unstageHunk',
   GIT_COMMIT: 'git:commit',
