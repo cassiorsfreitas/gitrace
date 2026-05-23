@@ -4,37 +4,55 @@ interface CommitAreaProps {
   stagedCount: number;
   onCommit: (message: string) => Promise<void>;
   onAmend: (message: string) => Promise<void>;
+  onGetLastCommitMessage: () => Promise<string>;
 }
 
 export function CommitArea({
   stagedCount,
   onCommit,
   onAmend,
+  onGetLastCommitMessage,
 }: CommitAreaProps): JSX.Element {
   const [message, setMessage] = useState("");
+  const [amend, setAmend] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const isDisabled = stagedCount === 0;
 
-  const handleCommit = useCallback(async () => {
-    if (isDisabled || !message.trim()) return;
-    await onCommit(message.trim());
-    setMessage("");
-  }, [isDisabled, message, onCommit]);
+  const canSubmit = amend
+    ? !!message.trim()
+    : stagedCount > 0 && !!message.trim();
 
-  const handleAmend = useCallback(async () => {
-    if (!message.trim()) return;
-    await onAmend(message.trim());
+  const handleSubmit = useCallback(async () => {
+    if (!canSubmit) return;
+    if (amend) {
+      await onAmend(message.trim());
+    } else {
+      await onCommit(message.trim());
+    }
     setMessage("");
-  }, [message, onAmend]);
+    setAmend(false);
+  }, [canSubmit, amend, message, onAmend, onCommit]);
+
+  const handleAmendToggle = useCallback(
+    async (checked: boolean) => {
+      setAmend(checked);
+      if (checked) {
+        const lastMsg = await onGetLastCommitMessage();
+        setMessage(lastMsg);
+      } else {
+        setMessage("");
+      }
+    },
+    [onGetLastCommitMessage],
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        handleCommit();
+        handleSubmit();
       }
     },
-    [handleCommit],
+    [handleSubmit],
   );
 
   return (
@@ -46,23 +64,24 @@ export function CommitArea({
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyDown={handleKeyDown}
-        disabled={isDisabled}
+        disabled={!amend && stagedCount === 0}
       />
       <div className="commit-actions">
         <button
           className="commit-btn commit-btn--primary"
-          onClick={handleCommit}
-          disabled={isDisabled || !message.trim()}
+          onClick={handleSubmit}
+          disabled={!canSubmit}
         >
-          Commit
+          {amend ? "Amend" : "Commit"}
         </button>
-        <button
-          className="commit-btn"
-          onClick={handleAmend}
-          disabled={!message.trim()}
-        >
+        <label className="commit-amend-label">
+          <input
+            type="checkbox"
+            checked={amend}
+            onChange={(e) => handleAmendToggle(e.target.checked)}
+          />
           Amend
-        </button>
+        </label>
       </div>
       <div className="commit-actions">
         <button className="commit-btn commit-btn--placeholder" disabled>

@@ -232,6 +232,28 @@ describe('GitService', () => {
     })
   })
 
+  describe('getLastCommitMessage()', () => {
+    it('returns the message of the last commit', async () => {
+      writeFile(dir, 'init.txt', 'init')
+      execSync('git add init.txt && git commit -m "initial commit"', { cwd: dir })
+
+      const msg = await svc.getLastCommitMessage(dir)
+      expect(msg).toBe('initial commit')
+    })
+  })
+
+  describe('amendCommit()', () => {
+    it('replaces the last commit message', async () => {
+      writeFile(dir, 'init.txt', 'init')
+      execSync('git add init.txt && git commit -m "old message"', { cwd: dir })
+
+      await svc.amendCommit(dir, 'new message')
+
+      const msg = await svc.getLastCommitMessage(dir)
+      expect(msg).toBe('new message')
+    })
+  })
+
   describe('unstageHunk()', () => {
     it('unstages only the provided hunk, leaving other hunks staged', async () => {
       const lines = Array.from({ length: 20 }, (_, i) => `line${i + 1}`)

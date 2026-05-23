@@ -183,6 +183,15 @@ function App(): JSX.Element {
     [activeRepo, refreshGitData],
   );
 
+  const handleGetLastCommitMessage = useCallback(async (): Promise<string> => {
+    if (!activeRepo) return "";
+    const msg = await window.electron.ipcRenderer.invoke(
+      "git:getLastCommitMessage",
+      { repoPath: activeRepo },
+    );
+    return msg as string;
+  }, [activeRepo]);
+
   return (
     <div className="app">
       <NavRail
@@ -215,6 +224,7 @@ function App(): JSX.Element {
               stagedCount={gitStatus?.staged.length ?? 0}
               onCommit={handleCommit}
               onAmend={handleAmend}
+              onGetLastCommitMessage={handleGetLastCommitMessage}
             />
           </>
         ) : (
