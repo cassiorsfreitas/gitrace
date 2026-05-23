@@ -4,6 +4,7 @@ import { FileTreePanel } from "./components/FileTreePanel";
 import { DiffCanvas } from "./components/DiffCanvas";
 import { NavRail } from "./components/NavRail";
 import { CommitArea } from "./components/CommitArea";
+import type { HookState } from "./components/HookOutputPanel";
 
 function App(): JSX.Element {
   const [repos, setRepos] = useState<string[]>([]);
@@ -12,6 +13,11 @@ function App(): JSX.Element {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [stagedDiff, setStagedDiff] = useState<string | null>(null);
   const [unstagedDiff, setUnstagedDiff] = useState<string | null>(null);
+  const [hookState, setHookState] = useState<HookState>({
+    phase: "idle",
+    output: [],
+    exitCode: null,
+  });
 
   const changedFilesCount =
     (gitStatus?.staged.length ?? 0) + (gitStatus?.unstaged.length ?? 0);
@@ -50,6 +56,33 @@ function App(): JSX.Element {
       window.electron.ipcRenderer.removeListener("git:changed", handler);
     };
   }, [activeRepo, refreshGitData]);
+
+  useEffect(() => {
+    const onStart = (): void => {
+      setHookState({ phase: "running", output: [], exitCode: null });
+    };
+    const onData = (_: unknown, payload: { chunk: string }): void => {
+      setHookState((prev) => ({
+        ...prev,
+        output: [...prev.output, payload.chunk],
+      }));
+    };
+    const onExit = (_: unknown, payload: { code: number }): void => {
+      setHookState((prev) => ({
+        ...prev,
+        phase: payload.code === 0 ? "success" : "failure",
+        exitCode: payload.code,
+      }));
+    };
+    window.electron.ipcRenderer.on("hook:start", onStart);
+    window.electron.ipcRenderer.on("hook:data", onData);
+    window.electron.ipcRenderer.on("hook:exit", onExit);
+    return (): void => {
+      window.electron.ipcRenderer.removeListener("hook:start", onStart);
+      window.electron.ipcRenderer.removeListener("hook:data", onData);
+      window.electron.ipcRenderer.removeListener("hook:exit", onExit);
+    };
+  }, []);
 
   const refreshRepos = async (): Promise<void> => {
     const r = await window.electron.ipcRenderer.invoke("repo:getAll", {});
@@ -166,6 +199,20 @@ function App(): JSX.Element {
         repoPath: activeRepo,
         message,
       });
+      setHookState({ phase: "idle", output: [], exitCode: null });
+      await refreshGitData(activeRepo);
+    },
+    [activeRepo, refreshGitData],
+  );
+
+  const handleForceCommit = useCallback(
+    async (message: string): Promise<void> => {
+      if (!activeRepo) return;
+      await window.electron.ipcRenderer.invoke("git:commitNoVerify", {
+        repoPath: activeRepo,
+        message,
+      });
+      setHookState({ phase: "idle", output: [], exitCode: null });
       await refreshGitData(activeRepo);
     },
     [activeRepo, refreshGitData],
@@ -222,9 +269,11 @@ function App(): JSX.Element {
             />
             <CommitArea
               stagedCount={gitStatus?.staged.length ?? 0}
+              hookState={hookState}
               onCommit={handleCommit}
               onAmend={handleAmend}
               onGetLastCommitMessage={handleGetLastCommitMessage}
+              onForceCommit={handleForceCommit}
             />
           </>
         ) : (

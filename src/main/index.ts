@@ -6,6 +6,7 @@ import { RepoStore } from './store/RepoStore'
 import { KeybindingStore } from './store/KeybindingStore'
 import { GitService } from './git/GitService'
 import { GitWatcher } from './git/GitWatcher'
+import { HookRunner } from './git/HookRunner'
 import { IPC, IPC_EVENTS, type IpcRequest, type IpcEventPayload } from '../shared/ipc'
 
 let repoStore: RepoStore
@@ -41,8 +42,31 @@ function registerIpcHandlers(): void {
     gitService.unstageHunk(req.repoPath, req.patch)
   )
 
-  ipcMain.handle(IPC.GIT_COMMIT, (_, req: IpcRequest<'git:commit'>) =>
-    gitService.commit(req.repoPath, req.message)
+  ipcMain.handle(IPC.GIT_COMMIT, async (event, req: IpcRequest<'git:commit'>) => {
+    const hookPath = join(req.repoPath, '.git', 'hooks', 'pre-commit')
+
+    if (existsSync(hookPath)) {
+      const runner = new HookRunner()
+
+      event.sender.send(IPC_EVENTS.HOOK_START, { hookName: 'pre-commit' })
+
+      runner.on('data', (chunk: string) => {
+        event.sender.send(IPC_EVENTS.HOOK_DATA, { chunk })
+      })
+
+      const exitCode = await runner.run(hookPath, req.repoPath)
+      event.sender.send(IPC_EVENTS.HOOK_EXIT, { code: exitCode })
+
+      if (exitCode !== 0) {
+        throw new Error(`pre-commit hook failed with exit code ${exitCode}`)
+      }
+    }
+
+    await gitService.commit(req.repoPath, req.message)
+  })
+
+  ipcMain.handle(IPC.GIT_COMMIT_NO_VERIFY, (_, req: IpcRequest<'git:commitNoVerify'>) =>
+    gitService.commitNoVerify(req.repoPath, req.message)
   )
 
   ipcMain.handle(IPC.GIT_AMEND_COMMIT, (_, req: IpcRequest<'git:amendCommit'>) =>

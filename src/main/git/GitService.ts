@@ -78,6 +78,11 @@ export class GitService {
     await git.raw(['commit', '--amend', '-m', message])
   }
 
+  async commitNoVerify(repoPath: string, message: string): Promise<void> {
+    const git = simpleGit(repoPath)
+    await git.raw(['commit', '--no-verify', '-m', message])
+  }
+
   async getLastCommitMessage(repoPath: string): Promise<string> {
     const git = simpleGit(repoPath)
     const result = await git.raw(['log', '-1', '--format=%B'])

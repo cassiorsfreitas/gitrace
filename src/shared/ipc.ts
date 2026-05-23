@@ -54,6 +54,10 @@ export interface IpcChannels {
     request: { repoPath: string; message: string }
     response: void
   }
+  'git:commitNoVerify': {
+    request: { repoPath: string; message: string }
+    response: void
+  }
   'git:getLastCommitMessage': {
     request: { repoPath: string }
     response: string
@@ -100,6 +104,9 @@ export type IpcResponse<C extends IpcChannel> = IpcChannels[C]['response']
 
 export interface IpcEvents {
   'git:changed': { repoPath: string }
+  'hook:start': { hookName: string }
+  'hook:data': { chunk: string }
+  'hook:exit': { code: number }
 }
 
 export type IpcEvent = keyof IpcEvents
@@ -107,6 +114,9 @@ export type IpcEventPayload<E extends IpcEvent> = IpcEvents[E]
 
 export const IPC_EVENTS = {
   GIT_CHANGED: 'git:changed',
+  HOOK_START: 'hook:start',
+  HOOK_DATA: 'hook:data',
+  HOOK_EXIT: 'hook:exit',
 } as const satisfies Record<string, IpcEvent>
 
 // ── Channel name constants (runtime values for ipcMain.handle / invoke) ───────
@@ -119,6 +129,7 @@ export const IPC = {
   GIT_UNSTAGE_HUNK: 'git:unstageHunk',
   GIT_COMMIT: 'git:commit',
   GIT_AMEND_COMMIT: 'git:amendCommit',
+  GIT_COMMIT_NO_VERIFY: 'git:commitNoVerify',
   GIT_LAST_COMMIT_MESSAGE: 'git:getLastCommitMessage',
   GIT_STAGED_DIFF: 'git:getStagedDiff',
   GIT_UNSTAGED_DIFF: 'git:getUnstagedDiff',
