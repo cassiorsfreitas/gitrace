@@ -38,6 +38,14 @@ export interface IpcChannels {
     request: { repoPath: string; filePath: string }
     response: void
   }
+  'git:stageHunk': {
+    request: { repoPath: string; patch: string }
+    response: void
+  }
+  'git:unstageHunk': {
+    request: { repoPath: string; patch: string }
+    response: void
+  }
   'git:commit': {
     request: { repoPath: string; message: string }
     response: void
@@ -107,6 +115,8 @@ export const IPC = {
   GIT_STATUS: 'git:getStatus',
   GIT_STAGE_FILE: 'git:stageFile',
   GIT_UNSTAGE_FILE: 'git:unstageFile',
+  GIT_STAGE_HUNK: 'git:stageHunk',
+  GIT_UNSTAGE_HUNK: 'git:unstageHunk',
   GIT_COMMIT: 'git:commit',
   GIT_AMEND_COMMIT: 'git:amendCommit',
   GIT_LAST_COMMIT_MESSAGE: 'git:getLastCommitMessage',

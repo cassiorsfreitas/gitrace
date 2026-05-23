@@ -25,6 +25,22 @@ function registerIpcHandlers(): void {
     gitService.getUnstagedDiff(req.repoPath)
   )
 
+  ipcMain.handle(IPC.GIT_STAGE_FILE, (_, req: IpcRequest<'git:stageFile'>) =>
+    gitService.stageFile(req.repoPath, req.filePath)
+  )
+
+  ipcMain.handle(IPC.GIT_UNSTAGE_FILE, (_, req: IpcRequest<'git:unstageFile'>) =>
+    gitService.unstageFile(req.repoPath, req.filePath)
+  )
+
+  ipcMain.handle(IPC.GIT_STAGE_HUNK, (_, req: IpcRequest<'git:stageHunk'>) =>
+    gitService.stageHunk(req.repoPath, req.patch)
+  )
+
+  ipcMain.handle(IPC.GIT_UNSTAGE_HUNK, (_, req: IpcRequest<'git:unstageHunk'>) =>
+    gitService.unstageHunk(req.repoPath, req.patch)
+  )
+
   ipcMain.handle(IPC.REPO_GET_ALL, () => repoStore.getAll())
 
   ipcMain.handle(IPC.REPO_ADD, (_, req: IpcRequest<'repo:add'>) => {

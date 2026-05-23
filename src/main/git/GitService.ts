@@ -1,3 +1,6 @@
+import { mkdtempSync, writeFileSync, rmSync } from 'fs'
+import { tmpdir } from 'os'
+import { join } from 'path'
 import simpleGit from 'simple-git'
 import type { GitStatus, TrackedFile, FileStatus } from '../../shared/ipc'
 
@@ -29,5 +32,39 @@ export class GitService {
   async getUnstagedDiff(repoPath: string): Promise<string> {
     const git = simpleGit(repoPath)
     return git.diff()
+  }
+
+  async stageFile(repoPath: string, filePath: string): Promise<void> {
+    const git = simpleGit(repoPath)
+    await git.add(filePath)
+  }
+
+  async unstageFile(repoPath: string, filePath: string): Promise<void> {
+    const git = simpleGit(repoPath)
+    await git.reset(['HEAD', '--', filePath])
+  }
+
+  async stageHunk(repoPath: string, patch: string): Promise<void> {
+    const tmpDir = mkdtempSync(join(tmpdir(), 'gitrace-patch-'))
+    const patchFile = join(tmpDir, 'hunk.patch')
+    try {
+      writeFileSync(patchFile, patch, 'utf-8')
+      const git = simpleGit(repoPath)
+      await git.applyPatch(patchFile, ['--cached'])
+    } finally {
+      rmSync(tmpDir, { recursive: true, force: true })
+    }
+  }
+
+  async unstageHunk(repoPath: string, patch: string): Promise<void> {
+    const tmpDir = mkdtempSync(join(tmpdir(), 'gitrace-patch-'))
+    const patchFile = join(tmpDir, 'hunk.patch')
+    try {
+      writeFileSync(patchFile, patch, 'utf-8')
+      const git = simpleGit(repoPath)
+      await git.applyPatch(patchFile, ['--cached', '--reverse'])
+    } finally {
+      rmSync(tmpDir, { recursive: true, force: true })
+    }
   }
 }

@@ -5,7 +5,8 @@
       "WebFetch(domain:trees.software)",
       "Bash(git:*)",
       "Bash(gh label:*)",
-      "Bash(gh issue:*)"
+      "Bash(gh issue:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }
