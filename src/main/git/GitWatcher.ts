@@ -24,9 +24,10 @@ export class GitWatcher extends EventEmitter {
 
   /**
    * Start watching `repoPath`. No-op if already watching.
+   * Returns a promise that resolves once chokidar is ready to detect changes.
    */
-  watch(repoPath: string): void {
-    if (this.watchers.has(repoPath)) return
+  watch(repoPath: string): Promise<void> {
+    if (this.watchers.has(repoPath)) return Promise.resolve()
 
     const gitDir = join(repoPath, '.git')
 
@@ -56,6 +57,8 @@ export class GitWatcher extends EventEmitter {
     watcher.on('unlink', schedule)
 
     this.watchers.set(repoPath, watcher)
+
+    return new Promise((resolve) => watcher.on('ready', resolve))
   }
 
   /**

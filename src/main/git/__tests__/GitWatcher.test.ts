@@ -62,7 +62,7 @@ describe('GitWatcher', () => {
   })
 
   it('emits changed with repoPath when a file is written', async () => {
-    watcher.watch(dir)
+    await watcher.watch(dir)
     const eventPromise = waitForEvent(watcher, 'changed')
     writeFile(dir, 'hello.txt', 'content')
     const [repoPath] = await eventPromise
@@ -70,7 +70,7 @@ describe('GitWatcher', () => {
   })
 
   it('debounces rapid successive writes into a single changed event', async () => {
-    watcher.watch(dir)
+    await watcher.watch(dir)
 
     const spy = vi.fn()
     watcher.on('changed', spy)
@@ -88,7 +88,7 @@ describe('GitWatcher', () => {
   })
 
   it('stops emitting events after unwatch', async () => {
-    watcher.watch(dir)
+    await watcher.watch(dir)
 
     // Verify it works first
     const firstEvent = waitForEvent(watcher, 'changed')
@@ -105,8 +105,8 @@ describe('GitWatcher', () => {
     const dir2 = makeRepo()
     try {
       const watcher2 = new GitWatcher(300)
-      watcher.watch(dir)
-      watcher2.watch(dir2)
+      await watcher.watch(dir)
+      await watcher2.watch(dir2)
 
       const event1 = waitForEvent(watcher, 'changed')
       const event2 = waitForEvent(watcher2, 'changed')
@@ -125,8 +125,8 @@ describe('GitWatcher', () => {
   })
 
   it('watch() is idempotent — calling it twice does not double-fire events', async () => {
-    watcher.watch(dir)
-    watcher.watch(dir) // second call should be a no-op
+    await watcher.watch(dir)
+    await watcher.watch(dir) // second call should be a no-op
 
     const spy = vi.fn()
     watcher.on('changed', spy)
