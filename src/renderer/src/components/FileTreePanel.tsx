@@ -1,7 +1,19 @@
 import { JSX, useEffect, useRef } from "react";
 import { FileTree, useFileTree } from "@pierre/trees/react";
+import { FILE_TREE_DEFAULT_ITEM_HEIGHT } from "@pierre/trees";
 import type { GitStatus as PierreGitStatus } from "@pierre/trees";
 import type { FileStatus, GitStatus } from "@shared/ipc";
+
+function treeHeight(paths: string[]): number {
+  const dirs = new Set<string>();
+  for (const p of paths) {
+    const segments = p.split("/");
+    for (let i = 1; i < segments.length; i++) {
+      dirs.add(segments.slice(0, i).join("/"));
+    }
+  }
+  return (paths.length + dirs.size) * FILE_TREE_DEFAULT_ITEM_HEIGHT;
+}
 
 function mapStatus(status: FileStatus): PierreGitStatus {
   switch (status) {
@@ -75,7 +87,11 @@ export function FileTreePanel({
           <span className="file-count">{staged.length}</span>
         </div>
         {staged.length > 0 ? (
-          <FileTree model={stagedModel} className="file-tree" />
+          <FileTree
+            model={stagedModel}
+            className="file-tree"
+            style={{ height: treeHeight(staged.map((f) => f.path)) }}
+          />
         ) : (
           <div className="file-tree-empty">No staged changes</div>
         )}
@@ -86,7 +102,11 @@ export function FileTreePanel({
           <span className="file-count">{unstaged.length}</span>
         </div>
         {unstaged.length > 0 ? (
-          <FileTree model={unstagedModel} className="file-tree" />
+          <FileTree
+            model={unstagedModel}
+            className="file-tree"
+            style={{ height: treeHeight(unstaged.map((f) => f.path)) }}
+          />
         ) : (
           <div className="file-tree-empty">No unstaged changes</div>
         )}
