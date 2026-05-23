@@ -337,6 +337,7 @@ body {
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   background: var(--bg-secondary);
+  -webkit-app-region: drag;
 }
 
 .layout-toggle-group {
@@ -345,6 +346,7 @@ body {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 5px;
   padding: 2px;
+  -webkit-app-region: no-drag;
 }
 
 .layout-toggle {
