@@ -33,7 +33,7 @@ interface FileRowProps {
   checked: boolean;
   focused: boolean;
   onToggle: (path: string) => void;
-  onSelect: (path: string) => void;
+  onSelect: (path: string, section: 'staged' | 'unstaged') => void;
   onContextMenu: (e: React.MouseEvent, path: string, isStaged: boolean) => void;
   isStaged: boolean;
 }
@@ -53,7 +53,7 @@ function FileRow({
   return (
     <div
       className={`file-row${focused ? " file-row--focused" : ""}`}
-      onClick={() => onSelect(file.path)}
+      onClick={() => onSelect(file.path, isStaged ? 'staged' : 'unstaged')}
       onContextMenu={(e) => onContextMenu(e, file.path, isStaged)}
     >
       <input
@@ -97,7 +97,8 @@ interface CtxMenu {
 interface FileTreePanelProps {
   gitStatus: GitStatus | null;
   selectedFile: string | null;
-  onFileSelect: (path: string) => void;
+  selectedSection: 'staged' | 'unstaged' | null;
+  onFileSelect: (path: string, section: 'staged' | 'unstaged') => void;
   onStageFile: (path: string) => void;
   onUnstageFile: (path: string) => void;
   onDiscardFile: (path: string) => void;
@@ -110,6 +111,7 @@ interface FileTreePanelProps {
 export function FileTreePanel({
   gitStatus,
   selectedFile,
+  selectedSection,
   onFileSelect,
   onStageFile,
   onUnstageFile,
@@ -134,7 +136,7 @@ export function FileTreePanel({
 
   const handleContextMenu = (e: React.MouseEvent, filePath: string, isStaged: boolean): void => {
     e.preventDefault();
-    onFileSelect(filePath);
+    onFileSelect(filePath, isStaged ? 'staged' : 'unstaged');
     setCtxMenu({ x: e.clientX, y: e.clientY, filePath, isStaged });
   };
 
@@ -168,7 +170,7 @@ export function FileTreePanel({
                 key={file.path}
                 file={file}
                 checked={true}
-                focused={file.path === selectedFile}
+                focused={file.path === selectedFile && selectedSection === 'staged'}
                 onToggle={onUnstageFile}
                 onSelect={onFileSelect}
                 onContextMenu={handleContextMenu}
@@ -200,7 +202,7 @@ export function FileTreePanel({
                 key={file.path}
                 file={file}
                 checked={false}
-                focused={file.path === selectedFile}
+                focused={file.path === selectedFile && selectedSection === 'unstaged'}
                 onToggle={onStageFile}
                 onSelect={onFileSelect}
                 onContextMenu={handleContextMenu}

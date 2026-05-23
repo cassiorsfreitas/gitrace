@@ -1,5 +1,7 @@
-import { app, BrowserWindow, shell, ipcMain, dialog, screen } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, dialog, screen, nativeImage } from 'electron'
 import { join } from 'path'
+
+app.setName('Gitrace')
 import { existsSync } from 'fs'
 import { is } from '@electron-toolkit/utils'
 import { RepoStore } from './store/RepoStore'
@@ -82,7 +84,10 @@ function registerIpcHandlers(): void {
     gitService.getLastCommitMessage(req.repoPath)
   )
 
-  ipcMain.handle(IPC.REPO_GET_ALL, () => repoStore.getAll())
+  ipcMain.handle(IPC.REPO_GET_ALL, () => ({
+    repos: repoStore.getAll(),
+    activeIndex: repoStore.getActiveIndex(),
+  }))
 
   ipcMain.handle(IPC.REPO_ADD, (_, req: IpcRequest<'repo:add'>) => {
     repoStore.addRepo(req.repoPath)
@@ -162,6 +167,11 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  if (process.platform === 'darwin' && is.dev) {
+    const icon = nativeImage.createFromPath(join(__dirname, '../../build/AppIcon512.png'))
+    app.dock?.setIcon(icon)
+  }
+
   repoStore = new RepoStore(app.getPath('userData'))
   keybindingStore = new KeybindingStore()
 

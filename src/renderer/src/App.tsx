@@ -1,7 +1,5 @@
 import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GitStatus, IpcEventPayload, TrackedFile } from "@shared/ipc";
-
-type FocusedColumn = 1 | 2 | 3 | 4;
 import { FileTreePanel } from "./components/FileTreePanel";
 import { DiffCanvas } from "./components/DiffCanvas";
 import type { DiffCanvasHandle } from "./components/DiffCanvas";
@@ -10,11 +8,30 @@ import { CommitArea } from "./components/CommitArea";
 import type { HookState } from "./components/HookOutputPanel";
 import { useKeybindings } from "./hooks/useKeybindings";
 
+type FocusedColumn = 1 | 2 | 3 | 4;
+type SectionedFile = TrackedFile & { section: 'staged' | 'unstaged' };
+
+/** Locate the current selection in the flat file list.
+ *  Tries exact {path, section} match first; falls back to path-only
+ *  so a stale section (e.g. after col-3 navigation) never returns -1
+ *  when the file still exists. */
+function resolveIdx(
+  files: SectionedFile[],
+  path: string | null,
+  section: 'staged' | 'unstaged' | null,
+): number {
+  if (!path) return -1;
+  const exact = files.findIndex(f => f.path === path && f.section === section);
+  if (exact !== -1) return exact;
+  return files.findIndex(f => f.path === path);
+}
+
 function App(): JSX.Element {
   const [repos, setRepos] = useState<string[]>([]);
   const [activeRepo, setActiveRepo] = useState<string | null>(null);
   const [gitStatus, setGitStatus] = useState<GitStatus | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [selectedSection, setSelectedSection] = useState<'staged' | 'unstaged' | null>(null);
   const [stagedDiff, setStagedDiff] = useState<string | null>(null);
   const [unstagedDiff, setUnstagedDiff] = useState<string | null>(null);
   const [hookState, setHookState] = useState<HookState>({
@@ -31,20 +48,22 @@ function App(): JSX.Element {
   const changedFilesCount =
     (gitStatus?.staged.length ?? 0) + (gitStatus?.unstaged.length ?? 0);
 
-  // Flat ordered list of all files for keyboard navigation
+  // Flat ordered list of all files for keyboard navigation (tagged with section)
   const allFiles = useMemo(
-    (): TrackedFile[] => [
-      ...(gitStatus?.staged ?? []),
-      ...(gitStatus?.unstaged ?? []),
+    (): SectionedFile[] => [
+      ...(gitStatus?.staged ?? []).map(f => ({ ...f, section: 'staged' as const })),
+      ...(gitStatus?.unstaged ?? []).map(f => ({ ...f, section: 'unstaged' as const })),
     ],
     [gitStatus],
   );
 
   // Stable refs so the keyboard handler never goes stale
-  const allFilesRef = useRef<TrackedFile[]>(allFiles);
+  const allFilesRef = useRef<SectionedFile[]>(allFiles);
   allFilesRef.current = allFiles;
   const selectedFileRef = useRef<string | null>(selectedFile);
   selectedFileRef.current = selectedFile;
+  const selectedSectionRef = useRef<'staged' | 'unstaged' | null>(selectedSection);
+  selectedSectionRef.current = selectedSection;
   const matchesRef = useRef(matches);
   matchesRef.current = matches;
   const focusedColumnRef = useRef<FocusedColumn>(2);
@@ -73,8 +92,17 @@ function App(): JSX.Element {
   useEffect(() => {
     window.electron.ipcRenderer
       .invoke("repo:getAll", {})
-      .then((r: unknown) => setRepos(r as string[]));
-  }, []);
+      .then((r: unknown) => {
+        const { repos: all, activeIndex } = r as { repos: string[]; activeIndex: number };
+        setRepos(all);
+        if (all.length > 0) {
+          const idx = Math.min(activeIndex, all.length - 1);
+          const repo = all[idx];
+          setActiveRepo(repo);
+          refreshGitData(repo);
+        }
+      });
+  }, [refreshGitData]);
 
   useEffect(() => {
     const handler = (
@@ -90,6 +118,24 @@ function App(): JSX.Element {
       window.electron.ipcRenderer.removeListener("git:changed", handler);
     };
   }, [activeRepo, refreshGitData]);
+
+  // Re-anchor selectedSection whenever gitStatus changes (e.g. after stage/unstage ops)
+  useEffect(() => {
+    const path = selectedFileRef.current;
+    const section = selectedSectionRef.current;
+    if (!path || !gitStatus) return;
+    const inStaged = gitStatus.staged.some(f => f.path === path);
+    const inUnstaged = gitStatus.unstaged.some(f => f.path === path);
+    if (!inStaged && !inUnstaged) {
+      setSelectedSection(null);
+    } else if (section === 'staged' && !inStaged) {
+      setSelectedSection('unstaged');
+    } else if (section === 'unstaged' && !inUnstaged) {
+      setSelectedSection('staged');
+    } else if (section === null) {
+      setSelectedSection(inStaged ? 'staged' : 'unstaged');
+    }
+  }, [gitStatus]);
 
   useEffect(() => {
     const onStart = (): void => {
@@ -160,7 +206,10 @@ function App(): JSX.Element {
         if (col === 1) {
           setFocusedColumn(2);
         } else if (col === 2 && files.length > 0) {
-          if (!current) setSelectedFile(files[0].path);
+          if (!current) {
+            setSelectedFile(files[0].path);
+            setSelectedSection(files[0].section);
+          }
           setFocusedColumn(3);
         } else if (col === 3) {
           setFocusedColumn(4);
@@ -173,21 +222,29 @@ function App(): JSX.Element {
         if (m(e, "nextLine")) {
           e.preventDefault();
           if (files.length > 0) {
-            const idx = current ? files.findIndex((f) => f.path === current) : -1;
+            const idx = resolveIdx(files, current, selectedSectionRef.current);
             const next = idx < files.length - 1 ? idx + 1 : idx;
-            const target = next >= 0 ? files[next] : files[0];
+            const target = idx === -1 ? files[0] : files[next];
             setSelectedFile(target.path);
+            setSelectedSection(target.section);
           }
         } else if (m(e, "prevLine")) {
           e.preventDefault();
           if (files.length > 0) {
-            const idx = current ? files.findIndex((f) => f.path === current) : -1;
-            if (idx > 0) setSelectedFile(files[idx - 1].path);
+            const idx = resolveIdx(files, current, selectedSectionRef.current);
+            if (idx > 0) {
+              const prev = files[idx - 1];
+              setSelectedFile(prev.path);
+              setSelectedSection(prev.section);
+            } else if (idx === -1 && files.length > 0) {
+              // Stale selection — re-anchor to first match by path
+              const fallback = files.find(f => f.path === current);
+              if (fallback) { setSelectedFile(fallback.path); setSelectedSection(fallback.section); }
+            }
           }
         } else if (m(e, "toggleStage") && current) {
           e.preventDefault();
-          const status = gitStatusRef.current;
-          const isStaged = status?.staged.some((f) => f.path === current) ?? false;
+          const isStaged = selectedSectionRef.current === 'staged';
           if (isStaged) {
             handleUnstageFileRef.current(current);
           } else {
@@ -195,8 +252,7 @@ function App(): JSX.Element {
           }
         } else if (m(e, "stepBack") && current) {
           e.preventDefault();
-          const status = gitStatusRef.current;
-          const isStaged = status?.staged.some((f) => f.path === current) ?? false;
+          const isStaged = selectedSectionRef.current === 'staged';
           if (isStaged) {
             handleUnstageFileRef.current(current);
           } else {
@@ -219,12 +275,18 @@ function App(): JSX.Element {
           diffCanvasRef.current?.scrollLineUp();
         } else if (m(e, "nextFile")) {
           e.preventDefault();
-          const filename = diffCanvasRef.current?.scrollToNextFile();
-          if (filename) setSelectedFile(filename);
+          const result = diffCanvasRef.current?.scrollToNextFile();
+          if (result) {
+            setSelectedFile(result.path);
+            setSelectedSection(result.section);
+          }
         } else if (m(e, "prevFile")) {
           e.preventDefault();
-          const filename = diffCanvasRef.current?.scrollToPrevFile();
-          if (filename) setSelectedFile(filename);
+          const result = diffCanvasRef.current?.scrollToPrevFile();
+          if (result) {
+            setSelectedFile(result.path);
+            setSelectedSection(result.section);
+          }
         }
         return;
       }
@@ -234,9 +296,11 @@ function App(): JSX.Element {
     return (): void => document.removeEventListener("keydown", handler);
   }, []); // stable via refs — no deps needed
 
-  const refreshRepos = async (): Promise<void> => {
+  const refreshRepos = async (): Promise<string[]> => {
     const r = await window.electron.ipcRenderer.invoke("repo:getAll", {});
-    setRepos(r as string[]);
+    const { repos: all } = r as { repos: string[]; activeIndex: number };
+    setRepos(all);
+    return all;
   };
 
   const handleAddRepo = async (): Promise<void> => {
@@ -245,7 +309,14 @@ function App(): JSX.Element {
         "repo:openPicker",
         {},
       );
-      if (added) await refreshRepos();
+      if (added) {
+        const all = await refreshRepos();
+        handleSelectRepo(added as string);
+        const idx = (all as string[]).indexOf(added as string);
+        if (idx !== -1) {
+          window.electron.ipcRenderer.invoke("repo:setActiveIndex", { index: idx });
+        }
+      }
     } catch (err) {
       console.error(err instanceof Error ? err.message : "Failed to add repository");
     }
@@ -255,9 +326,14 @@ function App(): JSX.Element {
     setActiveRepo(repoPath);
     setGitStatus(null);
     setSelectedFile(null);
+    setSelectedSection(null);
     setStagedDiff(null);
     setUnstagedDiff(null);
     refreshGitData(repoPath);
+    const idx = repos.indexOf(repoPath);
+    if (idx !== -1) {
+      window.electron.ipcRenderer.invoke("repo:setActiveIndex", { index: idx });
+    }
   };
 
   const handleRemoveRepo = async (repoPath: string): Promise<void> => {
@@ -266,6 +342,7 @@ function App(): JSX.Element {
       setActiveRepo(null);
       setGitStatus(null);
       setSelectedFile(null);
+      setSelectedSection(null);
       setStagedDiff(null);
       setUnstagedDiff(null);
     }
@@ -442,7 +519,8 @@ function App(): JSX.Element {
             <FileTreePanel
               gitStatus={gitStatus}
               selectedFile={selectedFile}
-              onFileSelect={setSelectedFile}
+              selectedSection={selectedSection}
+              onFileSelect={(path, section) => { setSelectedFile(path); setSelectedSection(section); }}
               onStageFile={handleStageFile}
               onUnstageFile={handleUnstageFile}
               onDiscardFile={handleDiscardFile}
@@ -456,6 +534,7 @@ function App(): JSX.Element {
               stagedDiff={stagedDiff}
               unstagedDiff={unstagedDiff}
               selectedFile={selectedFile}
+              selectedSection={selectedSection}
               onStageHunk={handleStageHunk}
               onUnstageHunk={handleUnstageHunk}
               isFocused={focusedColumn === 3}

@@ -1,5 +1,6 @@
 appId: com.gitrace.app
 productName: Gitrace
+icon: build/AppIcon.icns
 directories:
   output: dist
 files:

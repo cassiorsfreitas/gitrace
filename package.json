@@ -10,7 +10,8 @@
     "build": "electron-vite build && electron-builder --mac --dir",
     "preview": "electron-vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "postinstall": "mv node_modules/electron/dist/Electron.app node_modules/electron/dist/Gitrace.app 2>/dev/null; printf 'Gitrace.app/Contents/MacOS/Electron' > node_modules/electron/path.txt && plutil -replace CFBundleName -string Gitrace node_modules/electron/dist/Gitrace.app/Contents/Info.plist && plutil -replace CFBundleDisplayName -string Gitrace node_modules/electron/dist/Gitrace.app/Contents/Info.plist"
   },
   "dependencies": {
     "@pierre/diffs": "^1.2.2",
@@ -27,7 +28,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "electron": "^42.0.0",
+    "electron": "^42.2.0",
     "electron-builder": "^25.1.8",
     "electron-vite": "^5.0.0",
     "react": "^19.0.0",

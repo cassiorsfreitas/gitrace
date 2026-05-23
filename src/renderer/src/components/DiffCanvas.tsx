@@ -56,14 +56,15 @@ function extractHunkPatch(
 export interface DiffCanvasHandle {
   scrollLineDown(): void;
   scrollLineUp(): void;
-  scrollToNextFile(): string | null;
-  scrollToPrevFile(): string | null;
+  scrollToNextFile(): { path: string; section: 'staged' | 'unstaged' } | null;
+  scrollToPrevFile(): { path: string; section: 'staged' | 'unstaged' } | null;
 }
 
 interface DiffCanvasProps {
   stagedDiff: string | null;
   unstagedDiff: string | null;
   selectedFile: string | null;
+  selectedSection: 'staged' | 'unstaged' | null;
   onStageHunk: (patch: string) => void;
   onUnstageHunk: (patch: string) => void;
   isFocused?: boolean;
@@ -75,6 +76,7 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
       stagedDiff,
       unstagedDiff,
       selectedFile,
+      selectedSection,
       onStageHunk,
       onUnstageHunk,
       isFocused,
@@ -120,9 +122,13 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
 
     useEffect(() => {
       if (!selectedFile) return;
-      const el = fileRefs.current.get(selectedFile);
+      const key = selectedSection ? `${selectedSection}:${selectedFile}` : null;
+      const el =
+        (key ? fileRefs.current.get(key) : null) ??
+        fileRefs.current.get(`staged:${selectedFile}`) ??
+        fileRefs.current.get(`unstaged:${selectedFile}`);
       el?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, [selectedFile]);
+    }, [selectedFile, selectedSection]);
 
     useImperativeHandle(
       ref,
@@ -133,32 +139,34 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
         scrollLineUp(): void {
           scrollRef.current?.scrollBy({ top: -20 });
         },
-        scrollToNextFile(): string | null {
-          const allNames = [
-            ...stagedFiles.map((f) => f.name),
-            ...unstagedFiles.map((f) => f.name),
+        scrollToNextFile(): { path: string; section: 'staged' | 'unstaged' } | null {
+          const allEntries = [
+            ...stagedFiles.map(f => ({ path: f.name, section: 'staged' as const })),
+            ...unstagedFiles.map(f => ({ path: f.name, section: 'unstaged' as const })),
           ];
-          if (allNames.length === 0) return null;
+          if (allEntries.length === 0) return null;
           navFileIndexRef.current = Math.min(
             navFileIndexRef.current + 1,
-            allNames.length - 1,
+            allEntries.length - 1,
           );
+          const entry = allEntries[navFileIndexRef.current];
           fileRefs.current
-            .get(allNames[navFileIndexRef.current])
+            .get(`${entry.section}:${entry.path}`)
             ?.scrollIntoView({ behavior: "smooth", block: "start" });
-          return allNames[navFileIndexRef.current];
+          return entry;
         },
-        scrollToPrevFile(): string | null {
-          const allNames = [
-            ...stagedFiles.map((f) => f.name),
-            ...unstagedFiles.map((f) => f.name),
+        scrollToPrevFile(): { path: string; section: 'staged' | 'unstaged' } | null {
+          const allEntries = [
+            ...stagedFiles.map(f => ({ path: f.name, section: 'staged' as const })),
+            ...unstagedFiles.map(f => ({ path: f.name, section: 'unstaged' as const })),
           ];
-          if (allNames.length === 0) return null;
+          if (allEntries.length === 0) return null;
           navFileIndexRef.current = Math.max(navFileIndexRef.current - 1, 0);
+          const entry = allEntries[navFileIndexRef.current];
           fileRefs.current
-            .get(allNames[navFileIndexRef.current])
+            .get(`${entry.section}:${entry.path}`)
             ?.scrollIntoView({ behavior: "smooth", block: "start" });
-          return allNames[navFileIndexRef.current];
+          return entry;
         },
       }),
       [stagedFiles, unstagedFiles],
@@ -253,11 +261,12 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
             const collapsed = collapsedFiles.has(file.name);
             return (
               <div
-                key={file.name}
+                key={`${isStaged ? 'staged' : 'unstaged'}:${file.name}`}
                 className="diff-file-wrapper"
                 ref={(el): void => {
-                  if (el) fileRefs.current.set(file.name, el);
-                  else fileRefs.current.delete(file.name);
+                  const key = `${isStaged ? 'staged' : 'unstaged'}:${file.name}`;
+                  if (el) fileRefs.current.set(key, el);
+                  else fileRefs.current.delete(key);
                 }}
               >
                 {collapsed ? (

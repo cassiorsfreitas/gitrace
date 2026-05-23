@@ -78,7 +78,7 @@ export interface IpcChannels {
   }
   'repo:getAll': {
     request: Record<string, never>
-    response: string[]
+    response: { repos: string[]; activeIndex: number }
   }
   'repo:add': {
     request: { repoPath: string }
