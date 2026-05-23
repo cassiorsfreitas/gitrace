@@ -1,72 +1,90 @@
-import { useCallback, useEffect, useState } from 'react'
-import type { GitStatus, IpcEventPayload } from '@shared/ipc'
-import { FileTreePanel } from './components/FileTreePanel'
+import { JSX, useCallback, useEffect, useState } from "react";
+import type { GitStatus, IpcEventPayload } from "@shared/ipc";
+import { FileTreePanel } from "./components/FileTreePanel";
+import { DiffCanvas } from "./components/DiffCanvas";
 
 function App(): JSX.Element {
-  const [repos, setRepos] = useState<string[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [activeRepo, setActiveRepo] = useState<string | null>(null)
-  const [gitStatus, setGitStatus] = useState<GitStatus | null>(null)
-  const [selectedFile, setSelectedFile] = useState<string | null>(null)
+  const [repos, setRepos] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [activeRepo, setActiveRepo] = useState<string | null>(null);
+  const [gitStatus, setGitStatus] = useState<GitStatus | null>(null);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [stagedDiff, setStagedDiff] = useState<string | null>(null);
+  const [unstagedDiff, setUnstagedDiff] = useState<string | null>(null);
 
-  const refreshGitData = useCallback(async (repoPath: string): Promise<void> => {
-    const [status] = await Promise.all([
-      window.electron.ipcRenderer.invoke('git:getStatus', { repoPath }),
-      window.electron.ipcRenderer.invoke('git:getStagedDiff', { repoPath }),
-      window.electron.ipcRenderer.invoke('git:getUnstagedDiff', { repoPath })
-    ])
-    setGitStatus(status as GitStatus)
-  }, [])
+  const refreshGitData = useCallback(
+    async (repoPath: string): Promise<void> => {
+      const [status, staged, unstaged] = await Promise.all([
+        window.electron.ipcRenderer.invoke("git:getStatus", { repoPath }),
+        window.electron.ipcRenderer.invoke("git:getStagedDiff", { repoPath }),
+        window.electron.ipcRenderer.invoke("git:getUnstagedDiff", { repoPath }),
+      ]);
+      setGitStatus(status as GitStatus);
+      setStagedDiff(staged as string);
+      setUnstagedDiff(unstaged as string);
+    },
+    [],
+  );
 
   useEffect(() => {
     window.electron.ipcRenderer
-      .invoke('repo:getAll', {})
-      .then((r: unknown) => setRepos(r as string[]))
-  }, [])
+      .invoke("repo:getAll", {})
+      .then((r: unknown) => setRepos(r as string[]));
+  }, []);
 
   useEffect(() => {
-    const handler = (_event: unknown, payload: IpcEventPayload<'git:changed'>): void => {
+    const handler = (
+      _event: unknown,
+      payload: IpcEventPayload<"git:changed">,
+    ): void => {
       if (payload.repoPath === activeRepo) {
-        refreshGitData(payload.repoPath)
+        refreshGitData(payload.repoPath);
       }
-    }
-    window.electron.ipcRenderer.on('git:changed', handler)
+    };
+    window.electron.ipcRenderer.on("git:changed", handler);
     return (): void => {
-      window.electron.ipcRenderer.removeListener('git:changed', handler)
-    }
-  }, [activeRepo, refreshGitData])
+      window.electron.ipcRenderer.removeListener("git:changed", handler);
+    };
+  }, [activeRepo, refreshGitData]);
 
   const refreshRepos = async (): Promise<void> => {
-    const r = await window.electron.ipcRenderer.invoke('repo:getAll', {})
-    setRepos(r as string[])
-  }
+    const r = await window.electron.ipcRenderer.invoke("repo:getAll", {});
+    setRepos(r as string[]);
+  };
 
   const handleAddRepo = async (): Promise<void> => {
-    setError(null)
+    setError(null);
     try {
-      const added = await window.electron.ipcRenderer.invoke('repo:openPicker', {})
-      if (added) await refreshRepos()
+      const added = await window.electron.ipcRenderer.invoke(
+        "repo:openPicker",
+        {},
+      );
+      if (added) await refreshRepos();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add repository')
+      setError(err instanceof Error ? err.message : "Failed to add repository");
     }
-  }
+  };
 
   const handleSelectRepo = (repoPath: string): void => {
-    setActiveRepo(repoPath)
-    setGitStatus(null)
-    setSelectedFile(null)
-    refreshGitData(repoPath)
-  }
+    setActiveRepo(repoPath);
+    setGitStatus(null);
+    setSelectedFile(null);
+    setStagedDiff(null);
+    setUnstagedDiff(null);
+    refreshGitData(repoPath);
+  };
 
   const handleRemoveRepo = async (repoPath: string): Promise<void> => {
-    await window.electron.ipcRenderer.invoke('repo:remove', { repoPath })
+    await window.electron.ipcRenderer.invoke("repo:remove", { repoPath });
     if (activeRepo === repoPath) {
-      setActiveRepo(null)
-      setGitStatus(null)
-      setSelectedFile(null)
+      setActiveRepo(null);
+      setGitStatus(null);
+      setSelectedFile(null);
+      setStagedDiff(null);
+      setUnstagedDiff(null);
     }
-    await refreshRepos()
-  }
+    await refreshRepos();
+  };
 
   return (
     <div className="app">
@@ -78,17 +96,17 @@ function App(): JSX.Element {
           {repos.map((repo) => (
             <div
               key={repo}
-              className={`repo-item${activeRepo === repo ? ' repo-item--active' : ''}`}
+              className={`repo-item${activeRepo === repo ? " repo-item--active" : ""}`}
               onClick={() => handleSelectRepo(repo)}
             >
               <span className="repo-name" title={repo}>
-                {repo.split('/').pop()}
+                {repo.split("/").pop()}
               </span>
               <button
                 className="repo-remove"
                 onClick={(e) => {
-                  e.stopPropagation()
-                  handleRemoveRepo(repo)
+                  e.stopPropagation();
+                  handleRemoveRepo(repo);
                 }}
                 title="Remove repository"
               >
@@ -104,22 +122,31 @@ function App(): JSX.Element {
           </button>
         </div>
       </div>
-      <div className="main-content" data-selected-file={selectedFile ?? undefined}>
+      <div className="main-content">
         {activeRepo !== null ? (
-          <FileTreePanel
-            gitStatus={gitStatus}
-            onFileSelect={setSelectedFile}
-          />
+          <>
+            <FileTreePanel
+              gitStatus={gitStatus}
+              onFileSelect={setSelectedFile}
+            />
+            <DiffCanvas
+              stagedDiff={stagedDiff}
+              unstagedDiff={unstagedDiff}
+              selectedFile={selectedFile}
+            />
+          </>
         ) : (
           <div className="empty-state">
             <p>
-              {repos.length === 0 ? 'Add a repository to get started.' : 'Select a repository.'}
+              {repos.length === 0
+                ? "Add a repository to get started."
+                : "Select a repository."}
             </p>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

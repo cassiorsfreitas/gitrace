@@ -1,64 +1,71 @@
-import { useEffect, useRef } from 'react'
-import { FileTree, useFileTree } from '@pierre/trees/react'
-import type { GitStatus as PierreGitStatus } from '@pierre/trees'
-import type { FileStatus, GitStatus } from '@shared/ipc'
+import { JSX, useEffect, useRef } from "react";
+import { FileTree, useFileTree } from "@pierre/trees/react";
+import type { GitStatus as PierreGitStatus } from "@pierre/trees";
+import type { FileStatus, GitStatus } from "@shared/ipc";
 
 function mapStatus(status: FileStatus): PierreGitStatus {
   switch (status) {
-    case 'M':
-      return 'modified'
-    case 'A':
-      return 'added'
-    case 'D':
-      return 'deleted'
-    case 'R':
-      return 'renamed'
-    case 'C':
-      return 'added'
-    case '?':
-      return 'untracked'
+    case "M":
+      return "modified";
+    case "A":
+      return "added";
+    case "D":
+      return "deleted";
+    case "R":
+      return "renamed";
+    case "C":
+      return "added";
+    case "?":
+      return "untracked";
   }
 }
 
 interface FileTreePanelProps {
-  gitStatus: GitStatus | null
-  onFileSelect: (path: string) => void
+  gitStatus: GitStatus | null;
+  onFileSelect: (path: string) => void;
 }
 
-export function FileTreePanel({ gitStatus, onFileSelect }: FileTreePanelProps): JSX.Element {
-  const onFileSelectRef = useRef(onFileSelect)
-  onFileSelectRef.current = onFileSelect
+export function FileTreePanel({
+  gitStatus,
+  onFileSelect,
+}: FileTreePanelProps): JSX.Element {
+  const onFileSelectRef = useRef(onFileSelect);
+  onFileSelectRef.current = onFileSelect;
 
   const { model: stagedModel } = useFileTree({
     paths: [],
+    initialExpansion: "open",
     onSelectionChange: (paths) => {
-      if (paths.length > 0) onFileSelectRef.current(paths[0])
-    }
-  })
+      if (paths.length > 0) onFileSelectRef.current(paths[0]);
+    },
+  });
 
   const { model: unstagedModel } = useFileTree({
     paths: [],
+    initialExpansion: "open",
     onSelectionChange: (paths) => {
-      if (paths.length > 0) onFileSelectRef.current(paths[0])
-    }
-  })
+      if (paths.length > 0) onFileSelectRef.current(paths[0]);
+    },
+  });
 
   useEffect(() => {
-    const staged = gitStatus?.staged ?? []
-    stagedModel.resetPaths(staged.map((f) => f.path))
-    stagedModel.setGitStatus(staged.map((f) => ({ path: f.path, status: mapStatus(f.status) })))
-  }, [stagedModel, gitStatus])
+    const staged = gitStatus?.staged ?? [];
+    stagedModel.resetPaths(staged.map((f) => f.path));
+    stagedModel.setGitStatus(
+      staged.map((f) => ({ path: f.path, status: mapStatus(f.status) })),
+    );
+  }, [stagedModel, gitStatus]);
 
   useEffect(() => {
-    const unstaged = gitStatus?.unstaged ?? []
-    unstagedModel.resetPaths(unstaged.map((f) => f.path))
+    const unstaged = gitStatus?.unstaged ?? [];
+    unstagedModel.resetPaths(unstaged.map((f) => f.path));
     unstagedModel.setGitStatus(
-      unstaged.map((f) => ({ path: f.path, status: mapStatus(f.status) }))
-    )
-  }, [unstagedModel, gitStatus])
+      unstaged.map((f) => ({ path: f.path, status: mapStatus(f.status) })),
+    );
+  }, [unstagedModel, gitStatus]);
 
-  const staged = gitStatus?.staged ?? []
-  const unstaged = gitStatus?.unstaged ?? []
+  const staged = gitStatus?.staged ?? [];
+  const unstaged = gitStatus?.unstaged ?? [];
 
   return (
     <div className="file-tree-panel">
@@ -85,5 +92,5 @@ export function FileTreePanel({ gitStatus, onFileSelect }: FileTreePanelProps): 
         )}
       </section>
     </div>
-  )
+  );
 }
