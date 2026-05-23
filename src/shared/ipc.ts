@@ -104,6 +104,10 @@ export interface IpcChannels {
     request: Record<string, never>
     response: Record<string, string>
   }
+  'shell:openInEditor': {
+    request: { repoPath: string; filePath: string }
+    response: void
+  }
 }
 
 export type IpcChannel = keyof IpcChannels
@@ -153,4 +157,5 @@ export const IPC = {
   REPO_REORDER: 'repo:reorder',
   REPO_SET_ACTIVE_INDEX: 'repo:setActiveIndex',
   KEYBINDINGS_GET_ALL: 'keybindings:getAll',
+  SHELL_OPEN_IN_EDITOR: 'shell:openInEditor',
 } as const satisfies Record<string, IpcChannel>

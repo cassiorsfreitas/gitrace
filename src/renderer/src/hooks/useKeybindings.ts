@@ -10,6 +10,7 @@ const DEFAULTS: Record<string, string> = {
   stepBack: 'Backspace',
   focusLeft: 'Ctrl+H',
   focusRight: 'Ctrl+L',
+  openInEditor: 'o',
 }
 
 function normalizeKey(key: string): string {

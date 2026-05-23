@@ -491,11 +491,11 @@ body {
   letter-spacing: 0;
 }
 
-.status-modified  { color: #e2a94b; background: rgba(226, 169, 75, 0.15); }
-.status-added     { color: #57c26d; background: rgba(87, 194, 109, 0.15); }
-.status-deleted   { color: #e06c75; background: rgba(224, 108, 117, 0.15); }
-.status-renamed   { color: #61afef; background: rgba(97, 175, 239, 0.15); }
-.status-untracked { color: #888888; background: rgba(136, 136, 136, 0.15); }
+.status-modified  { color: #e2a94b; }
+.status-added     { color: #57c26d; }
+.status-deleted   { color: #e06c75; }
+.status-renamed   { color: #61afef; }
+.status-untracked { color: #888888; }
 
 .file-row-info {
   display: flex;
@@ -517,35 +517,6 @@ body {
 .file-row-stat-added   { color: #57c26d; }
 .file-row-stat-removed { color: #e06c75; }
 
-.file-row-discard {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  background: none;
-  border: none;
-  border-radius: 3px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.1s, color 0.1s, background 0.1s;
-}
-
-.file-row:hover .file-row-discard {
-  opacity: 1;
-  background: var(--bg-badge);
-}
-
-.file-row-discard:hover {
-  color: #e06c75;
-  background: rgba(224, 108, 117, 0.12);
-}
 
 .file-row-name {
   font-size: 12px;
@@ -936,5 +907,50 @@ body {
 .hook-force-commit:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* Context menu -------------------------------------------------------------- */
+
+.ctx-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+}
+
+.ctx-menu {
+  position: fixed;
+  z-index: 100;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  padding: 4px;
+  min-width: 160px;
+}
+
+.ctx-menu-item {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 6px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ctx-menu-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.ctx-menu-item--destructive {
+  color: #e06c75;
+}
+
+.ctx-menu-item--destructive:hover {
+  background: rgba(224, 108, 117, 0.12);
 }
 

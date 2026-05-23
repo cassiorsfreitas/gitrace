@@ -54,6 +54,7 @@ function App(): JSX.Element {
   const handleStageFileRef = useRef<(filePath: string) => Promise<void>>(null!);
   const handleUnstageFileRef = useRef<(filePath: string) => Promise<void>>(null!);
   const handleDiscardFileRef = useRef<(filePath: string) => Promise<void>>(null!);
+  const handleOpenInEditorRef = useRef<(filePath: string) => Promise<void>>(null!);
 
   const refreshGitData = useCallback(
     async (repoPath: string): Promise<void> => {
@@ -201,6 +202,9 @@ function App(): JSX.Element {
           } else {
             handleDiscardFileRef.current(current);
           }
+        } else if (m(e, "openInEditor") && current) {
+          e.preventDefault();
+          handleOpenInEditorRef.current(current);
         }
         return;
       }
@@ -304,9 +308,21 @@ function App(): JSX.Element {
     [activeRepo, refreshGitData],
   );
 
+  const handleOpenInEditor = useCallback(
+    async (filePath: string): Promise<void> => {
+      if (!activeRepo) return;
+      await window.electron.ipcRenderer.invoke("shell:openInEditor", {
+        repoPath: activeRepo,
+        filePath,
+      });
+    },
+    [activeRepo],
+  );
+
   handleStageFileRef.current = handleStageFile;
   handleUnstageFileRef.current = handleUnstageFile;
   handleDiscardFileRef.current = handleDiscardFile;
+  handleOpenInEditorRef.current = handleOpenInEditor;
 
   const handleStageAll = useCallback(async (): Promise<void> => {
     if (!activeRepo || !gitStatus?.unstaged.length) return;
@@ -432,6 +448,7 @@ function App(): JSX.Element {
               onDiscardFile={handleDiscardFile}
               onStageAll={handleStageAll}
               onUnstageAll={handleUnstageAll}
+              onOpenInEditor={handleOpenInEditor}
               isFocused={focusedColumn === 2}
             />
             <DiffCanvas

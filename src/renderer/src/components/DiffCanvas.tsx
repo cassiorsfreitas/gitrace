@@ -20,8 +20,10 @@ function findHunkForLine(
 ): number {
   for (let i = 0; i < hunks.length; i++) {
     const hunk = hunks[i];
-    const start = side === "additions" ? hunk.additionStart : hunk.deletionStart;
-    const count = side === "additions" ? hunk.additionCount : hunk.deletionCount;
+    const start =
+      side === "additions" ? hunk.additionStart : hunk.deletionStart;
+    const count =
+      side === "additions" ? hunk.additionCount : hunk.deletionCount;
     if (lineNumber >= start && lineNumber < start + count) {
       return i;
     }
@@ -69,7 +71,14 @@ interface DiffCanvasProps {
 
 export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
   function DiffCanvas(
-    { stagedDiff, unstagedDiff, selectedFile, onStageHunk, onUnstageHunk, isFocused },
+    {
+      stagedDiff,
+      unstagedDiff,
+      selectedFile,
+      onStageHunk,
+      onUnstageHunk,
+      isFocused,
+    },
     ref,
   ): JSX.Element {
     const [collapsedFiles, setCollapsedFiles] = useState<Set<string>>(
@@ -170,7 +179,10 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
     const options = useMemo(
       () => ({
         diffStyle,
-        theme: { dark: "pierre-dark-soft" as const, light: "pierre-light" as const },
+        theme: {
+          dark: "pierre-dark-soft" as const,
+          light: "pierre-light" as const,
+        },
         enableGutterUtility: true,
       }),
       [diffStyle],
@@ -191,7 +203,9 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
     const makeGutterUtility = useCallback(
       (file: FileDiffMetadata, rawDiff: string, isStaged: boolean) =>
         (
-          getHoveredLine: () => { lineNumber: number; side: AnnotationSide } | undefined,
+          getHoveredLine: () =>
+            | { lineNumber: number; side: AnnotationSide }
+            | undefined,
         ): JSX.Element => {
           const handleClick = (): void => {
             const hovered = getHoveredLine();
@@ -251,7 +265,11 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
                     className="diff-file-collapsed"
                     onClick={() => toggleCollapse(file.name)}
                   >
-                    <ChevronRight size={14} strokeWidth={1.5} className="collapse-icon" />
+                    <ChevronRight
+                      size={14}
+                      strokeWidth={1.5}
+                      className="collapse-icon"
+                    />
                     <span className="diff-filename">{file.name}</span>
                   </div>
                 ) : (
@@ -275,7 +293,7 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
     );
 
     return (
-      <div className={`diff-canvas${isFocused ? ' diff-canvas--focused' : ''}`}>
+      <div className={`diff-canvas${isFocused ? " diff-canvas--focused" : ""}`}>
         <div className="diff-canvas-toolbar">
           <div className="layout-toggle-group">
             <button

@@ -1,5 +1,4 @@
-import { JSX } from "react";
-import { Undo2 } from "lucide-react";
+import { JSX, useState, useEffect } from "react";
 import type { FileStatus, GitStatus, TrackedFile } from "@shared/ipc";
 
 const STATUS_LABEL: Record<FileStatus, string> = {
@@ -35,7 +34,8 @@ interface FileRowProps {
   focused: boolean;
   onToggle: (path: string) => void;
   onSelect: (path: string) => void;
-  onDiscard?: (path: string) => void;
+  onContextMenu: (e: React.MouseEvent, path: string, isStaged: boolean) => void;
+  isStaged: boolean;
 }
 
 function FileRow({
@@ -44,7 +44,8 @@ function FileRow({
   focused,
   onToggle,
   onSelect,
-  onDiscard,
+  onContextMenu,
+  isStaged,
 }: FileRowProps): JSX.Element {
   const name = basename(file.path);
   const dir = dirname(file.path);
@@ -53,6 +54,7 @@ function FileRow({
     <div
       className={`file-row${focused ? " file-row--focused" : ""}`}
       onClick={() => onSelect(file.path)}
+      onContextMenu={(e) => onContextMenu(e, file.path, isStaged)}
     >
       <input
         type="checkbox"
@@ -81,20 +83,15 @@ function FileRow({
           )}
         </div>
       )}
-      {onDiscard && (
-        <button
-          className="file-row-discard"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDiscard(file.path);
-          }}
-          title="Discard changes"
-        >
-          <Undo2 size={14} strokeWidth={1.5} />
-        </button>
-      )}
     </div>
   );
+}
+
+interface CtxMenu {
+  x: number;
+  y: number;
+  filePath: string;
+  isStaged: boolean;
 }
 
 interface FileTreePanelProps {
@@ -106,6 +103,7 @@ interface FileTreePanelProps {
   onDiscardFile: (path: string) => void;
   onStageAll: () => void;
   onUnstageAll: () => void;
+  onOpenInEditor: (path: string) => void;
   isFocused?: boolean;
 }
 
@@ -118,11 +116,27 @@ export function FileTreePanel({
   onDiscardFile,
   onStageAll,
   onUnstageAll,
+  onOpenInEditor,
   isFocused,
 }: FileTreePanelProps): JSX.Element {
   const staged = gitStatus?.staged ?? [];
   const unstaged = gitStatus?.unstaged ?? [];
   const totalFiles = staged.length + unstaged.length;
+
+  const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null);
+
+  useEffect(() => {
+    if (!ctxMenu) return;
+    const close = (): void => setCtxMenu(null);
+    document.addEventListener('keydown', close);
+    return (): void => document.removeEventListener('keydown', close);
+  }, [ctxMenu]);
+
+  const handleContextMenu = (e: React.MouseEvent, filePath: string, isStaged: boolean): void => {
+    e.preventDefault();
+    onFileSelect(filePath);
+    setCtxMenu({ x: e.clientX, y: e.clientY, filePath, isStaged });
+  };
 
   return (
     <div
@@ -157,6 +171,8 @@ export function FileTreePanel({
                 focused={file.path === selectedFile}
                 onToggle={onUnstageFile}
                 onSelect={onFileSelect}
+                onContextMenu={handleContextMenu}
+                isStaged={true}
               />
             ))}
           </div>
@@ -187,7 +203,8 @@ export function FileTreePanel({
                 focused={file.path === selectedFile}
                 onToggle={onStageFile}
                 onSelect={onFileSelect}
-                onDiscard={onDiscardFile}
+                onContextMenu={handleContextMenu}
+                isStaged={false}
               />
             ))}
           </div>
@@ -195,6 +212,42 @@ export function FileTreePanel({
           <div className="file-tree-empty">No unstaged changes</div>
         )}
       </section>
+
+      {ctxMenu && (
+        <>
+          <div
+            className="ctx-menu-backdrop"
+            onMouseDown={() => setCtxMenu(null)}
+          />
+          <div
+            className="ctx-menu"
+            style={{ left: ctxMenu.x, top: ctxMenu.y }}
+          >
+            <button
+              className="ctx-menu-item"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => {
+                onOpenInEditor(ctxMenu.filePath);
+                setCtxMenu(null);
+              }}
+            >
+              Open in Editor
+            </button>
+            {!ctxMenu.isStaged && (
+              <button
+                className="ctx-menu-item ctx-menu-item--destructive"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  onDiscardFile(ctxMenu.filePath);
+                  setCtxMenu(null);
+                }}
+              >
+                Discard Changes
+              </button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

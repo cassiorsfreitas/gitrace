@@ -116,6 +116,10 @@ function registerIpcHandlers(): void {
   })
 
   ipcMain.handle(IPC.KEYBINDINGS_GET_ALL, () => keybindingStore.getAll())
+
+  ipcMain.handle(IPC.SHELL_OPEN_IN_EDITOR, (_, req: IpcRequest<'shell:openInEditor'>) => {
+    shell.openPath(join(req.repoPath, req.filePath))
+  })
 }
 
 function createWindow(): void {
