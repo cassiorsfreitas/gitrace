@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { Command } from "cmdk";
-import { Layers, GitCommit, Compass, GitBranch, Settings } from "lucide-react";
 import { formatKeybind } from "../utils/formatKeybind";
 import "./CommandPalette.css";
 
@@ -27,13 +26,6 @@ const GROUPS: CommandDefinition["group"][] = [
   "App",
 ];
 
-const GROUP_ICONS: Record<CommandDefinition["group"], React.ReactElement> = {
-  Staging: <Layers size={13} strokeWidth={1.5} />,
-  Commit: <GitCommit size={13} strokeWidth={1.5} />,
-  Navigation: <Compass size={13} strokeWidth={1.5} />,
-  Repository: <GitBranch size={13} strokeWidth={1.5} />,
-  App: <Settings size={13} strokeWidth={1.5} />,
-};
 
 export function CommandPalette({
   open,
@@ -50,12 +42,20 @@ export function CommandPalette({
       }
     };
     document.addEventListener("keydown", handleKeyDown);
-    return (): void => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return (): void => document.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose]);
 
   if (!open) return null;
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (e.ctrlKey && e.key === 'j') {
+      e.preventDefault();
+      e.currentTarget.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+    } else if (e.ctrlKey && e.key === 'k') {
+      e.preventDefault();
+      e.currentTarget.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true, cancelable: true }));
+    }
+  };
 
   return (
     <>
@@ -66,6 +66,7 @@ export function CommandPalette({
             className="cmd-palette-input"
             placeholder="Run command..."
             autoFocus
+            onKeyDown={handleInputKeyDown}
           />
           <Command.List className="cmd-palette-list">
             <Command.Empty className="cmd-palette-empty">
@@ -97,9 +98,6 @@ export function CommandPalette({
                           onClose();
                         }}
                       >
-                        <span className="cmd-palette-item-icon">
-                          {GROUP_ICONS[cmd.group]}
-                        </span>
                         <span className="cmd-palette-item-label">
                           {cmd.label}
                         </span>

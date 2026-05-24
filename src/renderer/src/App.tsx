@@ -189,6 +189,7 @@ function App() {
   // Global keyboard navigation — column-aware
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
+      if ((document.activeElement as Element)?.closest('.cmd-palette-container')) return;
       const col = focusedColumnRef.current;
       const isTextarea = document.activeElement instanceof HTMLTextAreaElement;
       const m = matchesRef.current;
