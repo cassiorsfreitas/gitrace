@@ -17,6 +17,7 @@ const DEFAULTS: Bindings = {
   focusLeft: 'Ctrl+H',
   focusRight: 'Ctrl+L',
   openInEditor: 'o',
+  openCommandPalette: 'Cmd+K',
 }
 
 export class KeybindingStore extends EventEmitter {

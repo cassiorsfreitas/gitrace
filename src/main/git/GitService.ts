@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import simpleGit from 'simple-git'
-import type { GitStatus, TrackedFile, FileStatus } from '../../shared/ipc'
+import type { GitStatus, TrackedFile, FileStatus, SyncStatus } from '../../shared/ipc'
 
 export class GitService {
   async getStatus(repoPath: string): Promise<GitStatus> {
@@ -117,5 +117,32 @@ export class GitService {
     const git = simpleGit(repoPath)
     const result = await git.raw(['log', '-1', '--format=%B'])
     return result.trim()
+  }
+
+  async getBranch(repoPath: string): Promise<string> {
+    const git = simpleGit(repoPath)
+    const result = await git.revparse(['--abbrev-ref', 'HEAD'])
+    return result.trim()
+  }
+
+  async getSyncStatus(repoPath: string): Promise<SyncStatus> {
+    try {
+      const git = simpleGit(repoPath)
+      const result = await git.raw(['rev-list', '--left-right', '--count', 'HEAD...@{u}'])
+      const [ahead, behind] = result.trim().split('\t').map(Number)
+      return { ahead: ahead || 0, behind: behind || 0 }
+    } catch {
+      return { ahead: 0, behind: 0 }
+    }
+  }
+
+  async getRemoteName(repoPath: string): Promise<string> {
+    try {
+      const git = simpleGit(repoPath)
+      const remotes = await git.getRemotes(false)
+      return remotes[0]?.name ?? ''
+    } catch {
+      return ''
+    }
   }
 }

@@ -125,6 +125,20 @@ function registerIpcHandlers(): void {
   ipcMain.handle(IPC.SHELL_OPEN_IN_EDITOR, (_, req: IpcRequest<'shell:openInEditor'>) => {
     shell.openPath(join(req.repoPath, req.filePath))
   })
+
+  ipcMain.handle(IPC.GIT_BRANCH, (_, req: IpcRequest<'git:branch'>) =>
+    gitService.getBranch(req.repoPath)
+  )
+
+  ipcMain.handle(IPC.GIT_SYNC_STATUS, (_, req: IpcRequest<'git:syncStatus'>) =>
+    gitService.getSyncStatus(req.repoPath)
+  )
+
+  ipcMain.handle(IPC.GIT_REMOTE_NAME, (_, req: IpcRequest<'git:remoteName'>) =>
+    gitService.getRemoteName(req.repoPath)
+  )
+
+  ipcMain.handle(IPC.APP_VERSION, () => app.getVersion())
 }
 
 function createWindow(): void {

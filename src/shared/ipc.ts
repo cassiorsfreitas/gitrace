@@ -25,6 +25,8 @@ export interface GitStatus {
   unstaged: TrackedFile[]
 }
 
+export interface SyncStatus { ahead: number; behind: number }
+
 // ── Channel map ───────────────────────────────────────────────────────────────
 
 export interface IpcChannels {
@@ -108,6 +110,22 @@ export interface IpcChannels {
     request: { repoPath: string; filePath: string }
     response: void
   }
+  'git:branch': {
+    request: { repoPath: string }
+    response: string
+  }
+  'git:syncStatus': {
+    request: { repoPath: string }
+    response: SyncStatus
+  }
+  'git:remoteName': {
+    request: { repoPath: string }
+    response: string
+  }
+  'app:version': {
+    request: Record<string, never>
+    response: string
+  }
 }
 
 export type IpcChannel = keyof IpcChannels
@@ -158,4 +176,8 @@ export const IPC = {
   REPO_SET_ACTIVE_INDEX: 'repo:setActiveIndex',
   KEYBINDINGS_GET_ALL: 'keybindings:getAll',
   SHELL_OPEN_IN_EDITOR: 'shell:openInEditor',
+  GIT_BRANCH: 'git:branch',
+  GIT_SYNC_STATUS: 'git:syncStatus',
+  GIT_REMOTE_NAME: 'git:remoteName',
+  APP_VERSION: 'app:version',
 } as const satisfies Record<string, IpcChannel>

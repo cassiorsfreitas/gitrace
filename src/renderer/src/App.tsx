@@ -1,5 +1,5 @@
-import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { GitStatus, IpcEventPayload, TrackedFile } from "@shared/ipc";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { GitStatus, IpcEventPayload, TrackedFile, SyncStatus } from "@shared/ipc";
 import { FileTreePanel } from "./components/FileTreePanel";
 import { DiffCanvas } from "./components/DiffCanvas";
 import type { DiffCanvasHandle } from "./components/DiffCanvas";
@@ -7,6 +7,8 @@ import { NavRail } from "./components/NavRail";
 import { CommitArea } from "./components/CommitArea";
 import type { HookState } from "./components/HookOutputPanel";
 import { useKeybindings } from "./hooks/useKeybindings";
+import { StatusBar } from "./components/StatusBar";
+import { CommandPalette } from "./components/CommandPalette";
 
 type FocusedColumn = 1 | 2 | 3 | 4;
 type SectionedFile = TrackedFile & { section: 'staged' | 'unstaged' };
@@ -26,7 +28,7 @@ function resolveIdx(
   return files.findIndex(f => f.path === path);
 }
 
-function App(): JSX.Element {
+function App() {
   const [repos, setRepos] = useState<string[]>([]);
   const [activeRepo, setActiveRepo] = useState<string | null>(null);
   const [gitStatus, setGitStatus] = useState<GitStatus | null>(null);
@@ -40,10 +42,16 @@ function App(): JSX.Element {
     exitCode: null,
   });
 
+  const [branchName, setBranchName] = useState<string>('');
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({ ahead: 0, behind: 0 });
+  const [remoteName, setRemoteName] = useState<string>('');
+  const [appVersion, setAppVersion] = useState<string>('');
+  const [paletteOpen, setPaletteOpen] = useState<boolean>(false);
+
   const [focusedColumn, setFocusedColumn] = useState<FocusedColumn>(2);
 
   const diffCanvasRef = useRef<DiffCanvasHandle>(null);
-  const { matches } = useKeybindings();
+  const { matches, getBinding } = useKeybindings();
 
   const changedFilesCount =
     (gitStatus?.staged.length ?? 0) + (gitStatus?.unstaged.length ?? 0);
@@ -77,14 +85,20 @@ function App(): JSX.Element {
 
   const refreshGitData = useCallback(
     async (repoPath: string): Promise<void> => {
-      const [status, staged, unstaged] = await Promise.all([
+      const [status, staged, unstaged, branch, sync, remote] = await Promise.all([
         window.electron.ipcRenderer.invoke("git:getStatus", { repoPath }),
         window.electron.ipcRenderer.invoke("git:getStagedDiff", { repoPath }),
         window.electron.ipcRenderer.invoke("git:getUnstagedDiff", { repoPath }),
+        window.electron.ipcRenderer.invoke("git:branch", { repoPath }),
+        window.electron.ipcRenderer.invoke("git:syncStatus", { repoPath }),
+        window.electron.ipcRenderer.invoke("git:remoteName", { repoPath }),
       ]);
       setGitStatus(status as GitStatus);
       setStagedDiff(staged as string);
       setUnstagedDiff(unstaged as string);
+      setBranchName(branch as string);
+      setSyncStatus(sync as SyncStatus);
+      setRemoteName(remote as string);
     },
     [],
   );
@@ -103,6 +117,13 @@ function App(): JSX.Element {
         }
       });
   }, [refreshGitData]);
+
+  useEffect(() => {
+    window.electron.ipcRenderer
+      .invoke("app:version", {})
+      .then((v: unknown) => setAppVersion(v as string))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handler = (
@@ -329,6 +350,9 @@ function App(): JSX.Element {
     setSelectedSection(null);
     setStagedDiff(null);
     setUnstagedDiff(null);
+    setBranchName('');
+    setSyncStatus({ ahead: 0, behind: 0 });
+    setRemoteName('');
     refreshGitData(repoPath);
     const idx = repos.indexOf(repoPath);
     if (idx !== -1) {
@@ -345,6 +369,9 @@ function App(): JSX.Element {
       setSelectedSection(null);
       setStagedDiff(null);
       setUnstagedDiff(null);
+      setBranchName('');
+      setSyncStatus({ ahead: 0, behind: 0 });
+      setRemoteName('');
     }
     await refreshRepos();
   };
@@ -503,62 +530,82 @@ function App(): JSX.Element {
   };
 
   return (
-    <div className="app" onMouseDown={handleGlobalMouseDown}>
-      <NavRail
-        repos={repos}
-        activeRepo={activeRepo}
-        changedFilesCount={changedFilesCount}
-        onSelectRepo={handleSelectRepo}
-        onAddRepo={handleAddRepo}
-        onRemoveRepo={handleRemoveRepo}
-        isFocused={focusedColumn === 1}
-      />
-      <div className="main-content">
-        {activeRepo !== null ? (
-          <>
-            <FileTreePanel
-              gitStatus={gitStatus}
-              selectedFile={selectedFile}
-              selectedSection={selectedSection}
-              onFileSelect={(path, section) => { setSelectedFile(path); setSelectedSection(section); }}
-              onStageFile={handleStageFile}
-              onUnstageFile={handleUnstageFile}
-              onDiscardFile={handleDiscardFile}
-              onStageAll={handleStageAll}
-              onUnstageAll={handleUnstageAll}
-              onOpenInEditor={handleOpenInEditor}
-              isFocused={focusedColumn === 2}
-            />
-            <DiffCanvas
-              ref={diffCanvasRef}
-              stagedDiff={stagedDiff}
-              unstagedDiff={unstagedDiff}
-              selectedFile={selectedFile}
-              selectedSection={selectedSection}
-              onStageHunk={handleStageHunk}
-              onUnstageHunk={handleUnstageHunk}
-              isFocused={focusedColumn === 3}
-            />
-            <CommitArea
-              stagedCount={gitStatus?.staged.length ?? 0}
-              hookState={hookState}
-              onCommit={handleCommit}
-              onAmend={handleAmend}
-              onGetLastCommitMessage={handleGetLastCommitMessage}
-              onForceCommit={handleForceCommit}
-              isFocused={focusedColumn === 4}
-            />
-          </>
-        ) : (
-          <div className="empty-state">
-            <p>
-              {repos.length === 0
-                ? "Add a repository to get started."
-                : "Select a repository."}
-            </p>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
+        <div className="app" onMouseDown={handleGlobalMouseDown} style={{ display: 'flex', flex: 1 }}>
+          <NavRail
+            repos={repos}
+            activeRepo={activeRepo}
+            changedFilesCount={changedFilesCount}
+            onSelectRepo={handleSelectRepo}
+            onAddRepo={handleAddRepo}
+            onRemoveRepo={handleRemoveRepo}
+            isFocused={focusedColumn === 1}
+          />
+          <div className="main-content">
+            {activeRepo !== null ? (
+              <>
+                <FileTreePanel
+                  gitStatus={gitStatus}
+                  selectedFile={selectedFile}
+                  selectedSection={selectedSection}
+                  onFileSelect={(path, section) => { setSelectedFile(path); setSelectedSection(section); }}
+                  onStageFile={handleStageFile}
+                  onUnstageFile={handleUnstageFile}
+                  onDiscardFile={handleDiscardFile}
+                  onStageAll={handleStageAll}
+                  onUnstageAll={handleUnstageAll}
+                  onOpenInEditor={handleOpenInEditor}
+                  isFocused={focusedColumn === 2}
+                />
+                <DiffCanvas
+                  ref={diffCanvasRef}
+                  stagedDiff={stagedDiff}
+                  unstagedDiff={unstagedDiff}
+                  selectedFile={selectedFile}
+                  selectedSection={selectedSection}
+                  onStageHunk={handleStageHunk}
+                  onUnstageHunk={handleUnstageHunk}
+                  isFocused={focusedColumn === 3}
+                />
+                <CommitArea
+                  stagedCount={gitStatus?.staged.length ?? 0}
+                  hookState={hookState}
+                  onCommit={handleCommit}
+                  onAmend={handleAmend}
+                  onGetLastCommitMessage={handleGetLastCommitMessage}
+                  onForceCommit={handleForceCommit}
+                  isFocused={focusedColumn === 4}
+                />
+              </>
+            ) : (
+              <div className="empty-state">
+                <p>
+                  {repos.length === 0
+                    ? "Add a repository to get started."
+                    : "Select a repository."}
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
+      <StatusBar
+        branchName={branchName}
+        ahead={syncStatus.ahead}
+        behind={syncStatus.behind}
+        changedCount={changedFilesCount}
+        hookState={hookState}
+        remoteName={remoteName}
+        appVersion={appVersion}
+        onOpenPalette={() => setPaletteOpen(true)}
+      />
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        commands={[]}
+        getBinding={getBinding}
+      />
     </div>
   );
 }

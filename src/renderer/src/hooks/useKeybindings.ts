@@ -11,6 +11,7 @@ const DEFAULTS: Record<string, string> = {
   focusLeft: 'Ctrl+H',
   focusRight: 'Ctrl+L',
   openInEditor: 'o',
+  openCommandPalette: 'Cmd+K',
 }
 
 function normalizeKey(key: string): string {
@@ -36,6 +37,7 @@ function matchesBinding(e: KeyboardEvent, binding: string): boolean {
 
 export function useKeybindings(): {
   matches: (e: KeyboardEvent, action: string) => boolean
+  getBinding: (action: string) => string | undefined
 } {
   const [bindings, setBindings] = useState<Record<string, string>>(DEFAULTS)
 
@@ -61,5 +63,12 @@ export function useKeybindings(): {
     [bindings],
   )
 
-  return { matches }
+  const getBinding = useCallback(
+    (action: string): string | undefined => {
+      return bindings[action]
+    },
+    [bindings],
+  )
+
+  return { matches, getBinding }
 }

@@ -1,0 +1,121 @@
+.cmd-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+}
+
+.cmd-palette-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 560px;
+  z-index: 1001;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.cmd-palette {
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  font-size: 13px;
+  color: var(--text-primary, #e8e8e8);
+}
+
+.cmd-palette-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  outline: none;
+  color: var(--text-primary, #e8e8e8);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  padding: 14px 16px;
+  caret-color: var(--accent, #5e9bff);
+}
+
+.cmd-palette-input::placeholder {
+  color: var(--text-secondary, #888888);
+}
+
+.cmd-palette-list {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.cmd-palette-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.cmd-palette-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cmd-palette-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.cmd-palette-empty {
+  padding: 20px 16px;
+  text-align: center;
+  color: var(--text-secondary, #888888);
+  font-size: 13px;
+}
+
+/* Group heading */
+[cmdk-group-heading] {
+  padding: 6px 16px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #888888);
+  user-select: none;
+}
+
+.cmd-palette-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  cursor: default;
+  border-radius: 4px;
+  margin: 0 6px;
+  gap: 8px;
+  transition: background 0.08s;
+}
+
+.cmd-palette-item[data-selected='true'],
+.cmd-palette-item[aria-selected='true'] {
+  background: rgba(94, 155, 255, 0.15);
+  color: var(--text-primary, #e8e8e8);
+}
+
+.cmd-palette-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cmd-palette-item-label {
+  flex: 1;
+  color: var(--text-primary, #e8e8e8);
+  font-size: 13px;
+}
+
+.cmd-palette-keybind {
+  font-family: 'SF Mono', Monaco, Consolas, 'Ubuntu Mono', monospace;
+  font-size: 11px;
+  color: var(--text-secondary, #888888);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}

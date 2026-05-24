@@ -1,0 +1,131 @@
+/* StatusBar ----------------------------------------------------------------- */
+
+:root {
+  --status-bar-height: 28px;
+}
+
+.status-bar {
+  height: var(--status-bar-height);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-secondary);
+  user-select: none;
+  overflow: hidden;
+}
+
+.status-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.status-bar-center {
+  flex-shrink: 0;
+}
+
+.status-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  flex: 1;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.status-bar-branch {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-bar-branch-icon {
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.status-bar-sync {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status-bar-changed {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status-bar-palette-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 10px;
+  height: 20px;
+  white-space: nowrap;
+  transition: background 0.1s, color 0.1s;
+}
+
+.status-bar-palette-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.status-bar-palette-icon {
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.status-bar-palette-hint {
+  font-size: 10px;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.status-bar-hook {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status-bar-hook--ready {
+  color: var(--text-secondary);
+}
+
+.status-bar-hook--running {
+  color: #e2a94b;
+}
+
+.status-bar-hook--failed {
+  color: #e06c75;
+}
+
+.status-bar-remote {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.status-bar-version {
+  white-space: nowrap;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
