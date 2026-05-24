@@ -114,15 +114,25 @@ describe('GitWatcher', () => {
     15_000
   )
 
-  it('watch() is idempotent — calling it twice does not double-fire events', async () => {
-    await watcher.watch(dir)
-    await watcher.watch(dir) // second call should be a no-op
+  it(
+    'watch() is idempotent — calling it twice does not double-fire events',
+    async () => {
+      await watcher.watch(dir)
+      await watcher.watch(dir) // second call should be a no-op
 
-    const spy = vi.fn()
-    watcher.on('changed', spy)
+      const spy = vi.fn()
+      watcher.on('changed', spy)
 
-    writeFile(dir, 'x.txt', 'v')
-    await new Promise((r) => setTimeout(r, 800))
-    expect(spy).toHaveBeenCalledTimes(1)
-  })
+      writeFile(dir, 'x.txt', 'v')
+
+      // Wait for the event to actually fire instead of guessing a fixed delay
+      await waitForEvent(watcher, 'changed')
+
+      // Wait another full debounce + buffer to confirm no double-fire
+      await new Promise((r) => setTimeout(r, 600))
+
+      expect(spy).toHaveBeenCalledTimes(1)
+    },
+    15_000
+  )
 })
