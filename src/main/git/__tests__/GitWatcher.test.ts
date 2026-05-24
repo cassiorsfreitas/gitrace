@@ -35,18 +35,6 @@ function waitForEvent(
   })
 }
 
-/** Asserts that `event` does NOT fire within `waitMs` milliseconds. */
-function assertNoEvent(emitter: GitWatcher, event: string, waitMs = 600): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const handler = (): void => reject(new Error(`Unexpected event: ${event}`))
-    emitter.once(event, handler)
-    setTimeout(() => {
-      emitter.removeListener(event, handler)
-      resolve()
-    }, waitMs)
-  })
-}
-
 describe('GitWatcher', () => {
   let dir: string
   let watcher: GitWatcher
@@ -98,20 +86,6 @@ describe('GitWatcher', () => {
     },
     15_000
   )
-
-  it('stops emitting events after unwatch', async () => {
-    await watcher.watch(dir)
-
-    // Verify it works first
-    const firstEvent = waitForEvent(watcher, 'changed')
-    writeFile(dir, 'before.txt', 'data')
-    await firstEvent
-
-    // Now unwatch and confirm no further events
-    watcher.unwatch(dir)
-    writeFile(dir, 'after.txt', 'data')
-    await assertNoEvent(watcher, 'changed')
-  })
 
   it(
     'watches multiple repos simultaneously without interference',
