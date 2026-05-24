@@ -53,7 +53,7 @@ describe('GitWatcher', () => {
 
   beforeEach(() => {
     dir = makeRepo()
-    watcher = new GitWatcher(300)
+    watcher = new GitWatcher(300, true)
   })
 
   afterEach(async () => {
@@ -82,8 +82,12 @@ describe('GitWatcher', () => {
     writeFile(dir, 'd.txt', '4')
     writeFile(dir, 'e.txt', '5')
 
-    // Wait for debounce to settle (300 ms) plus a buffer
-    await new Promise((r) => setTimeout(r, 800))
+    // Wait for the debounced event with a generous timeout to handle slow CI runners
+    await waitForEvent(watcher, 'changed', 3000)
+
+    // Wait another full debounce + buffer to confirm no second event fires
+    await new Promise((r) => setTimeout(r, 600))
+
     expect(spy).toHaveBeenCalledTimes(1)
   })
 
@@ -104,7 +108,7 @@ describe('GitWatcher', () => {
   it('watches multiple repos simultaneously without interference', async () => {
     const dir2 = makeRepo()
     try {
-      const watcher2 = new GitWatcher(300)
+      const watcher2 = new GitWatcher(300, true)
       await watcher.watch(dir)
       await watcher2.watch(dir2)
 

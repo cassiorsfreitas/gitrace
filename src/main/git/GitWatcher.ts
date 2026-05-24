@@ -17,10 +17,12 @@ export class GitWatcher extends EventEmitter {
   private readonly gitStateWatchers = new Map<string, FSWatcher>()
   private readonly timers = new Map<string, ReturnType<typeof setTimeout>>()
   private readonly debounceMs: number
+  private readonly usePolling: boolean
 
-  constructor(debounceMs = 300) {
+  constructor(debounceMs = 300, usePolling = false) {
     super()
     this.debounceMs = debounceMs
+    this.usePolling = usePolling
   }
 
   /**
@@ -51,7 +53,8 @@ export class GitWatcher extends EventEmitter {
         return false
       },
       ignoreInitial: true,
-      persistent: true
+      persistent: true,
+      usePolling: this.usePolling,
     })
 
     watcher.on('add', schedule)
