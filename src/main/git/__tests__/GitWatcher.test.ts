@@ -53,7 +53,7 @@ describe('GitWatcher', () => {
 
   beforeEach(() => {
     dir = makeRepo()
-    watcher = new GitWatcher(300, true)
+    watcher = new GitWatcher(300)
   })
 
   afterEach(async () => {
@@ -75,6 +75,10 @@ describe('GitWatcher', () => {
     const spy = vi.fn()
     watcher.on('changed', spy)
 
+    // Register the wait before writing so the listener is in place
+    // regardless of how fast the underlying FS watcher fires
+    const settled = waitForEvent(watcher, 'changed', 5000)
+
     // Write five files in rapid succession (well within 300 ms debounce)
     writeFile(dir, 'a.txt', '1')
     writeFile(dir, 'b.txt', '2')
@@ -82,8 +86,8 @@ describe('GitWatcher', () => {
     writeFile(dir, 'd.txt', '4')
     writeFile(dir, 'e.txt', '5')
 
-    // Wait for the debounced event with a generous timeout to handle slow CI runners
-    await waitForEvent(watcher, 'changed', 3000)
+    // Wait for the debounced event (generous timeout for slow CI runners)
+    await settled
 
     // Wait another full debounce + buffer to confirm no second event fires
     await new Promise((r) => setTimeout(r, 600))
@@ -108,7 +112,7 @@ describe('GitWatcher', () => {
   it('watches multiple repos simultaneously without interference', async () => {
     const dir2 = makeRepo()
     try {
-      const watcher2 = new GitWatcher(300, true)
+      const watcher2 = new GitWatcher(300)
       await watcher.watch(dir)
       await watcher2.watch(dir2)
 
