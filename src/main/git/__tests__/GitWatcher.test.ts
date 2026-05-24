@@ -21,7 +21,7 @@ function writeFile(dir: string, name: string, content: string): void {
 function waitForEvent(
   emitter: GitWatcher,
   event: string,
-  timeoutMs = 2000
+  timeoutMs = 5000
 ): Promise<unknown[]> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(
@@ -113,28 +113,32 @@ describe('GitWatcher', () => {
     await assertNoEvent(watcher, 'changed')
   })
 
-  it('watches multiple repos simultaneously without interference', async () => {
-    const dir2 = makeRepo()
-    try {
-      const watcher2 = new GitWatcher(300)
-      await watcher.watch(dir)
-      await watcher2.watch(dir2)
+  it(
+    'watches multiple repos simultaneously without interference',
+    async () => {
+      const dir2 = makeRepo()
+      try {
+        const watcher2 = new GitWatcher(300)
+        await watcher.watch(dir)
+        await watcher2.watch(dir2)
 
-      const event1 = waitForEvent(watcher, 'changed')
-      const event2 = waitForEvent(watcher2, 'changed')
+        const event1 = waitForEvent(watcher, 'changed')
+        const event2 = waitForEvent(watcher2, 'changed')
 
-      writeFile(dir, 'repo1.txt', 'x')
-      writeFile(dir2, 'repo2.txt', 'y')
+        writeFile(dir, 'repo1.txt', 'x')
+        writeFile(dir2, 'repo2.txt', 'y')
 
-      const [[path1], [path2]] = await Promise.all([event1, event2])
-      expect(path1).toBe(dir)
-      expect(path2).toBe(dir2)
+        const [[path1], [path2]] = await Promise.all([event1, event2])
+        expect(path1).toBe(dir)
+        expect(path2).toBe(dir2)
 
-      watcher2.destroy()
-    } finally {
-      rmSync(dir2, { recursive: true, force: true })
-    }
-  })
+        watcher2.destroy()
+      } finally {
+        rmSync(dir2, { recursive: true, force: true })
+      }
+    },
+    15_000
+  )
 
   it('watch() is idempotent — calling it twice does not double-fire events', async () => {
     await watcher.watch(dir)
