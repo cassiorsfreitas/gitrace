@@ -1,4 +1,5 @@
 import React from 'react'
+import { Terminal, Zap } from 'lucide-react'
 import type { HookState } from './HookOutputPanel'
 import './StatusBar.css'
 
@@ -59,7 +60,7 @@ export function StatusBar({
       {/* Centre zone: command palette button */}
       <div className="status-bar-center">
         <button className="status-bar-palette-btn" onClick={onOpenPalette} tabIndex={-1}>
-          <span className="status-bar-palette-icon">&#x2315;</span>
+          <Terminal size={12} strokeWidth={1.5} />
           Run command
           <span className="status-bar-palette-hint">&#x2318;K</span>
         </button>
@@ -67,7 +68,12 @@ export function StatusBar({
 
       {/* Right zone: hook state, remote, version */}
       <div className="status-bar-right">
-        <span className={hookClass}>{hookLabel}</span>
+        <span className={hookClass}>
+          {phase !== 'running' && phase !== 'failure' && (
+            <Zap size={11} strokeWidth={1.5} />
+          )}
+          {hookLabel}
+        </span>
         {remoteName && <span className="status-bar-remote">{remoteName}</span>}
         {appVersion && <span className="status-bar-version">v{appVersion}</span>}
       </div>

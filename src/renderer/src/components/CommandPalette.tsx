@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { Command } from "cmdk";
+import { Layers, GitCommit, Compass, GitBranch, Settings } from "lucide-react";
 import { formatKeybind } from "../utils/formatKeybind";
 import "./CommandPalette.css";
 
@@ -25,6 +26,14 @@ const GROUPS: CommandDefinition["group"][] = [
   "Repository",
   "App",
 ];
+
+const GROUP_ICONS: Record<CommandDefinition["group"], React.ReactElement> = {
+  Staging: <Layers size={13} strokeWidth={1.5} />,
+  Commit: <GitCommit size={13} strokeWidth={1.5} />,
+  Navigation: <Compass size={13} strokeWidth={1.5} />,
+  Repository: <GitBranch size={13} strokeWidth={1.5} />,
+  App: <Settings size={13} strokeWidth={1.5} />,
+};
 
 export function CommandPalette({
   open,
@@ -88,6 +97,9 @@ export function CommandPalette({
                           onClose();
                         }}
                       >
+                        <span className="cmd-palette-item-icon">
+                          {GROUP_ICONS[cmd.group]}
+                        </span>
                         <span className="cmd-palette-item-label">
                           {cmd.label}
                         </span>

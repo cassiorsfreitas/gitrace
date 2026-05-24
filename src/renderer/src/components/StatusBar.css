@@ -91,10 +91,6 @@
   border-radius: 5px;
 }
 
-.status-bar-palette-icon {
-  font-size: 11px;
-  flex-shrink: 0;
-}
 
 .status-bar-palette-hint {
   font-size: 10px;
@@ -103,6 +99,9 @@
 }
 
 .status-bar-hook {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   white-space: nowrap;
   flex-shrink: 0;
 }

@@ -5,6 +5,7 @@ import { HookOutputPanel, type HookState } from "./HookOutputPanel";
 interface CommitAreaProps {
   stagedCount: number;
   hookState: HookState;
+  branchName?: string;
   onCommit: (message: string) => Promise<void>;
   onAmend: (message: string) => Promise<void>;
   onGetLastCommitMessage: () => Promise<string>;
@@ -15,6 +16,7 @@ interface CommitAreaProps {
 export function CommitArea({
   stagedCount,
   hookState,
+  branchName,
   onCommit,
   onAmend,
   onGetLastCommitMessage,
@@ -106,7 +108,8 @@ export function CommitArea({
           disabled={!canSubmit}
         >
           <GitCommit size={14} strokeWidth={1.5} />
-          Commit
+          Commit{branchName ? ` to ${branchName}` : ''}
+          <kbd className="commit-btn-badge">⌘↵</kbd>
         </button>
         <button
           className="commit-btn commit-btn--icon commit-btn--placeholder"

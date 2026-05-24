@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { AlignJustify, Columns, ChevronDown, ChevronRight } from "lucide-react";
 import { FileDiff } from "@pierre/diffs/react";
 import { processPatch } from "@pierre/diffs";
 import type { AnnotationSide, FileDiffMetadata, Hunk } from "@pierre/diffs";
@@ -309,12 +309,14 @@ export const DiffCanvas = forwardRef<DiffCanvasHandle, DiffCanvasProps>(
               className={`layout-toggle${diffStyle === "unified" ? " layout-toggle--active" : ""}`}
               onClick={() => setDiffStyle("unified")}
             >
+              <AlignJustify size={12} strokeWidth={1.5} />
               Unified
             </button>
             <button
               className={`layout-toggle${diffStyle === "split" ? " layout-toggle--active" : ""}`}
               onClick={() => setDiffStyle("split")}
             >
+              <Columns size={12} strokeWidth={1.5} />
               Split
             </button>
           </div>

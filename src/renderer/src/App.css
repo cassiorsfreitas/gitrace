@@ -596,6 +596,9 @@ body {
 }
 
 .layout-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   background: none;
   border: none;
   color: var(--text-secondary);
@@ -786,6 +789,7 @@ body {
 }
 
 .commit-btn--primary {
+  position: relative;
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
@@ -807,6 +811,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.commit-btn-badge {
+  position: absolute;
+  right: 8px;
+  font-family: 'SF Mono', Monaco, Consolas, 'Ubuntu Mono', monospace;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  padding: 1px 4px;
+  line-height: 1.4;
 }
 
 /* Focused column indicator -------------------------------------------------- */

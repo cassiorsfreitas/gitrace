@@ -654,6 +654,7 @@ function App() {
                 <CommitArea
                   stagedCount={gitStatus?.staged.length ?? 0}
                   hookState={hookState}
+                  branchName={branchName}
                   onCommit={handleCommit}
                   onAmend={handleAmend}
                   onGetLastCommitMessage={handleGetLastCommitMessage}
