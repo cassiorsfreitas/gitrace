@@ -26,6 +26,17 @@ npm install
 npm run dev
 ```
 
+## Release
+
+Bump version, tag, and push — CI builds and publishes the `.dmg` automatically:
+
+```bash
+npm version patch   # or minor / major
+git push && git push --tags
+```
+
+The GitHub Actions workflow runs tests, builds `Gitrace-arm64.dmg`, and creates a GitHub Release with auto-generated notes.
+
 ## Test
 
 ```bash

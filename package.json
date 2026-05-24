@@ -8,6 +8,7 @@
     "dev": "electron-vite dev",
     "compile": "electron-vite build",
     "build": "electron-vite build && electron-builder --mac --dir",
+    "build:dmg": "electron-vite build && electron-builder --mac dmg",
     "preview": "electron-vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
