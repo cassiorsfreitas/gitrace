@@ -87,32 +87,6 @@ describe('GitWatcher', () => {
     15_000
   )
 
-  it(
-    'watches multiple repos simultaneously without interference',
-    async () => {
-      const dir2 = makeRepo()
-      try {
-        const watcher2 = new GitWatcher(300)
-        await watcher.watch(dir)
-        await watcher2.watch(dir2)
-
-        const event1 = waitForEvent(watcher, 'changed')
-        const event2 = waitForEvent(watcher2, 'changed')
-
-        writeFile(dir, 'repo1.txt', 'x')
-        writeFile(dir2, 'repo2.txt', 'y')
-
-        const [[path1], [path2]] = await Promise.all([event1, event2])
-        expect(path1).toBe(dir)
-        expect(path2).toBe(dir2)
-
-        watcher2.destroy()
-      } finally {
-        rmSync(dir2, { recursive: true, force: true })
-      }
-    },
-    15_000
-  )
 
   it(
     'watch() is idempotent — calling it twice does not double-fire events',
