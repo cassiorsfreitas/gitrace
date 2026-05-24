@@ -69,31 +69,35 @@ describe('GitWatcher', () => {
     expect(repoPath).toBe(dir)
   })
 
-  it('debounces rapid successive writes into a single changed event', async () => {
-    await watcher.watch(dir)
+  it(
+    'debounces rapid successive writes into a single changed event',
+    async () => {
+      await watcher.watch(dir)
 
-    const spy = vi.fn()
-    watcher.on('changed', spy)
+      const spy = vi.fn()
+      watcher.on('changed', spy)
 
-    // Register the wait before writing so the listener is in place
-    // regardless of how fast the underlying FS watcher fires
-    const settled = waitForEvent(watcher, 'changed', 5000)
+      // Register the wait before writing so the listener is in place
+      // regardless of how fast the underlying FS watcher fires
+      const settled = waitForEvent(watcher, 'changed', 8000)
 
-    // Write five files in rapid succession (well within 300 ms debounce)
-    writeFile(dir, 'a.txt', '1')
-    writeFile(dir, 'b.txt', '2')
-    writeFile(dir, 'c.txt', '3')
-    writeFile(dir, 'd.txt', '4')
-    writeFile(dir, 'e.txt', '5')
+      // Write five files in rapid succession (well within 300 ms debounce)
+      writeFile(dir, 'a.txt', '1')
+      writeFile(dir, 'b.txt', '2')
+      writeFile(dir, 'c.txt', '3')
+      writeFile(dir, 'd.txt', '4')
+      writeFile(dir, 'e.txt', '5')
 
-    // Wait for the debounced event (generous timeout for slow CI runners)
-    await settled
+      // Wait for the debounced event (generous timeout for slow CI runners)
+      await settled
 
-    // Wait another full debounce + buffer to confirm no second event fires
-    await new Promise((r) => setTimeout(r, 600))
+      // Wait another full debounce + buffer to confirm no second event fires
+      await new Promise((r) => setTimeout(r, 600))
 
-    expect(spy).toHaveBeenCalledTimes(1)
-  })
+      expect(spy).toHaveBeenCalledTimes(1)
+    },
+    15_000
+  )
 
   it('stops emitting events after unwatch', async () => {
     await watcher.watch(dir)
