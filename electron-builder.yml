@@ -13,4 +13,3 @@ mac:
       arch:
         - arm64
 npmRebuild: false
-publish: never
