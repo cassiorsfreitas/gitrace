@@ -9,6 +9,7 @@ import type { HookState } from "./components/HookOutputPanel";
 import { useKeybindings } from "./hooks/useKeybindings";
 import { StatusBar } from "./components/StatusBar";
 import { CommandPalette } from "./components/CommandPalette";
+import type { CommandDefinition } from "./components/CommandPalette";
 
 type FocusedColumn = 1 | 2 | 3 | 4;
 type SectionedFile = TrackedFile & { section: 'staged' | 'unstaged' };
@@ -212,6 +213,13 @@ function App() {
           e.preventDefault();
           setFocusedColumn((col + 1) as FocusedColumn);
         }
+        return;
+      }
+
+      // Command palette: fires universally, even from textarea
+      if (m(e, 'openCommandPalette')) {
+        e.preventDefault();
+        setPaletteOpen(true);
         return;
       }
 
@@ -521,6 +529,65 @@ function App() {
     return msg as string;
   }, [activeRepo]);
 
+  const commands = useMemo((): CommandDefinition[] => [
+    // Staging
+    { id: 'stage-all', label: 'Stage All', group: 'Staging', action: () => { handleStageAll(); } },
+    { id: 'unstage-all', label: 'Unstage All', group: 'Staging', action: () => { handleUnstageAll(); } },
+    {
+      id: 'toggle-stage', label: 'Toggle Stage', group: 'Staging',
+      action: () => {
+        if (!selectedFile) return;
+        if (selectedSection === 'staged') handleUnstageFile(selectedFile);
+        else handleStageFile(selectedFile);
+      },
+      bindingKey: 'toggleStage',
+    },
+    // Commit
+    { id: 'commit', label: 'Commit', group: 'Commit', action: () => { setFocusedColumn(4); }, bindingKey: 'commit' },
+    { id: 'commit-push', label: 'Commit & Push', group: 'Commit', action: () => {} },
+    { id: 'amend', label: 'Amend', group: 'Commit', action: () => { setFocusedColumn(4); } },
+    // Navigation
+    { id: 'focus-col-1', label: 'Focus Column 1', group: 'Navigation', action: () => { setFocusedColumn(1); } },
+    { id: 'focus-col-2', label: 'Focus Column 2', group: 'Navigation', action: () => { setFocusedColumn(2); } },
+    { id: 'focus-col-3', label: 'Focus Column 3', group: 'Navigation', action: () => { setFocusedColumn(3); } },
+    { id: 'focus-col-4', label: 'Focus Column 4', group: 'Navigation', action: () => { setFocusedColumn(4); } },
+    {
+      id: 'next-file', label: 'Next File', group: 'Navigation',
+      action: () => {
+        if (allFiles.length === 0) return;
+        const idx = resolveIdx(allFiles, selectedFile, selectedSection);
+        const next = idx < allFiles.length - 1 ? idx + 1 : idx;
+        const target = idx === -1 ? allFiles[0] : allFiles[next];
+        setSelectedFile(target.path);
+        setSelectedSection(target.section);
+      },
+      bindingKey: 'nextFile',
+    },
+    {
+      id: 'prev-file', label: 'Previous File', group: 'Navigation',
+      action: () => {
+        if (allFiles.length === 0) return;
+        const idx = resolveIdx(allFiles, selectedFile, selectedSection);
+        if (idx > 0) {
+          const prev = allFiles[idx - 1];
+          setSelectedFile(prev.path);
+          setSelectedSection(prev.section);
+        }
+      },
+      bindingKey: 'prevFile',
+    },
+    // Repository
+    { id: 'switch-repo', label: 'Switch Repository', group: 'Repository', action: () => { setFocusedColumn(1); } },
+    {
+      id: 'open-in-editor', label: 'Open in Editor', group: 'Repository',
+      action: () => {
+        if (!selectedFile) return;
+        handleOpenInEditor(selectedFile);
+      },
+      bindingKey: 'openInEditor',
+    },
+  ], [handleStageAll, handleUnstageAll, handleStageFile, handleUnstageFile, handleOpenInEditor, selectedFile, selectedSection, allFiles]);
+
   const handleGlobalMouseDown = (e: React.MouseEvent): void => {
     const target = e.target as Element;
     if (target.closest('.nav-rail')) setFocusedColumn(1);
@@ -603,7 +670,7 @@ function App() {
       <CommandPalette
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}
-        commands={[]}
+        commands={commands}
         getBinding={getBinding}
       />
     </div>

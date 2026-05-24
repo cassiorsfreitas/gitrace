@@ -3,7 +3,7 @@ import { Command } from 'cmdk'
 import { formatKeybind } from '../utils/formatKeybind'
 import './CommandPalette.css'
 
-interface CommandDefinition {
+export interface CommandDefinition {
   id: string
   label: string
   group: 'Staging' | 'Commit' | 'Navigation' | 'Repository'
