@@ -7,7 +7,8 @@
       "Bash(gh label:*)",
       "Bash(gh issue:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(npm test:*)"
     ]
   }
 }

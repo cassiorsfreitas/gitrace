@@ -126,6 +126,10 @@ function registerIpcHandlers(): void {
     shell.openPath(join(req.repoPath, req.filePath))
   })
 
+  ipcMain.handle(IPC.SHELL_OPEN_KEYBINDINGS_FILE, () => {
+    shell.openPath(keybindingStore.getConfigPath())
+  })
+
   ipcMain.handle(IPC.GIT_BRANCH, (_, req: IpcRequest<'git:branch'>) =>
     gitService.getBranch(req.repoPath)
   )

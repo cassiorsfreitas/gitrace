@@ -223,6 +223,12 @@ function App() {
         return;
       }
 
+      if (m(e, 'openKeybindingsFile')) {
+        e.preventDefault();
+        handleOpenKeybindingsFile();
+        return;
+      }
+
       // All other shortcuts blocked when textarea is focused
       if (isTextarea) return;
 
@@ -431,6 +437,10 @@ function App() {
     [activeRepo],
   );
 
+  const handleOpenKeybindingsFile = useCallback(async (): Promise<void> => {
+    await window.electron.ipcRenderer.invoke("shell:openKeybindingsFile", {});
+  }, []);
+
   handleStageFileRef.current = handleStageFile;
   handleUnstageFileRef.current = handleUnstageFile;
   handleDiscardFileRef.current = handleDiscardFile;
@@ -586,7 +596,13 @@ function App() {
       },
       bindingKey: 'openInEditor',
     },
-  ], [handleStageAll, handleUnstageAll, handleStageFile, handleUnstageFile, handleOpenInEditor, selectedFile, selectedSection, allFiles]);
+    // App
+    {
+      id: 'open-keybindings-file', label: 'Open Keybindings File', group: 'App',
+      action: () => { handleOpenKeybindingsFile(); },
+      bindingKey: 'openKeybindingsFile',
+    },
+  ], [handleStageAll, handleUnstageAll, handleStageFile, handleUnstageFile, handleOpenInEditor, handleOpenKeybindingsFile, selectedFile, selectedSection, allFiles]);
 
   const handleGlobalMouseDown = (e: React.MouseEvent): void => {
     const target = e.target as Element;

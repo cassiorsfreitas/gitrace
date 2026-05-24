@@ -18,6 +18,7 @@ const DEFAULTS: Bindings = {
   focusRight: 'Ctrl+L',
   openInEditor: 'o',
   openCommandPalette: 'Cmd+K',
+  openKeybindingsFile: 'Cmd+,',
 }
 
 export class KeybindingStore extends EventEmitter {
@@ -69,6 +70,10 @@ export class KeybindingStore extends EventEmitter {
     } catch {
       // directory may not exist — tolerate silently
     }
+  }
+
+  getConfigPath(): string {
+    return this.configPath
   }
 
   getBinding(action: string): string {

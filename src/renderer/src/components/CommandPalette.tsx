@@ -1,24 +1,30 @@
-import React, { useEffect } from 'react'
-import { Command } from 'cmdk'
-import { formatKeybind } from '../utils/formatKeybind'
-import './CommandPalette.css'
+import React, { useEffect } from "react";
+import { Command } from "cmdk";
+import { formatKeybind } from "../utils/formatKeybind";
+import "./CommandPalette.css";
 
 export interface CommandDefinition {
-  id: string
-  label: string
-  group: 'Staging' | 'Commit' | 'Navigation' | 'Repository'
-  action: () => void
-  bindingKey?: string
+  id: string;
+  label: string;
+  group: "Staging" | "Commit" | "Navigation" | "Repository" | "App";
+  action: () => void;
+  bindingKey?: string;
 }
 
 interface CommandPaletteProps {
-  open: boolean
-  onClose: () => void
-  commands: CommandDefinition[]
-  getBinding: (action: string) => string | undefined
+  open: boolean;
+  onClose: () => void;
+  commands: CommandDefinition[];
+  getBinding: (action: string) => string | undefined;
 }
 
-const GROUPS: CommandDefinition['group'][] = ['Staging', 'Commit', 'Navigation', 'Repository']
+const GROUPS: CommandDefinition["group"][] = [
+  "Staging",
+  "Commit",
+  "Navigation",
+  "Repository",
+  "App",
+];
 
 export function CommandPalette({
   open,
@@ -27,20 +33,20 @@ export function CommandPalette({
   getBinding,
 }: CommandPaletteProps): React.ReactElement | null {
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     const handleKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') {
-        e.preventDefault()
-        onClose()
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
       }
-    }
-    document.addEventListener('keydown', handleKeyDown)
+    };
+    document.addEventListener("keydown", handleKeyDown);
     return (): void => {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [open, onClose])
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, onClose]);
 
-  if (!open) return null
+  if (!open) return null;
 
   return (
     <>
@@ -53,10 +59,12 @@ export function CommandPalette({
             autoFocus
           />
           <Command.List className="cmd-palette-list">
-            <Command.Empty className="cmd-palette-empty">No results found.</Command.Empty>
+            <Command.Empty className="cmd-palette-empty">
+              No results found.
+            </Command.Empty>
             {GROUPS.map((group) => {
-              const groupCommands = commands.filter((c) => c.group === group)
-              if (groupCommands.length === 0) return null
+              const groupCommands = commands.filter((c) => c.group === group);
+              if (groupCommands.length === 0) return null;
               return (
                 <Command.Group
                   key={group}
@@ -64,31 +72,39 @@ export function CommandPalette({
                   className="cmd-palette-group"
                 >
                   {groupCommands.map((cmd) => {
-                    const rawBinding = cmd.bindingKey ? getBinding(cmd.bindingKey) : undefined
-                    const formattedBinding = rawBinding ? formatKeybind(rawBinding) : undefined
+                    const rawBinding = cmd.bindingKey
+                      ? getBinding(cmd.bindingKey)
+                      : undefined;
+                    const formattedBinding = rawBinding
+                      ? formatKeybind(rawBinding)
+                      : undefined;
                     return (
                       <Command.Item
                         key={cmd.id}
                         value={cmd.label}
                         className="cmd-palette-item"
                         onSelect={(): void => {
-                          cmd.action()
-                          onClose()
+                          cmd.action();
+                          onClose();
                         }}
                       >
-                        <span className="cmd-palette-item-label">{cmd.label}</span>
+                        <span className="cmd-palette-item-label">
+                          {cmd.label}
+                        </span>
                         {formattedBinding && (
-                          <kbd className="cmd-palette-keybind">{formattedBinding}</kbd>
+                          <kbd className="cmd-palette-keybind">
+                            {formattedBinding}
+                          </kbd>
                         )}
                       </Command.Item>
-                    )
+                    );
                   })}
                 </Command.Group>
-              )
+              );
             })}
           </Command.List>
         </Command>
       </div>
     </>
-  )
+  );
 }

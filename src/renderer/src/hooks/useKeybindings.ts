@@ -12,6 +12,7 @@ const DEFAULTS: Record<string, string> = {
   focusRight: 'Ctrl+L',
   openInEditor: 'o',
   openCommandPalette: 'Cmd+K',
+  openKeybindingsFile: 'Cmd+,',
 }
 
 function normalizeKey(key: string): string {
