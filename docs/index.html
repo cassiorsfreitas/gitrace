@@ -3,29 +3,297 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gitrace</title>
+  <title>Gitrace &mdash; Git, the way it should feel.</title>
+  <meta name="description" content="A native macOS git client built for developers who care about flow. Pre-commit hooks, worktrees, and beautiful diffs — keyboard-first." />
   <link rel="icon" type="image/png" href="icon.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main>
-    <img src="icon.png" alt="Gitrace" class="icon" />
-    <h1>Gitrace</h1>
-    <p class="description">Pre-commit diff review and commit flow for macOS.</p>
-    <a
-      class="download-btn"
-      href="https://github.com/cassiorsfreitas/gitrace/releases/latest/download/Gitrace-arm64.dmg"
-    >
-      Download for macOS
-      <span class="chip">Apple Silicon</span>
-    </a>
-    <p class="note">
-      Unsigned app &mdash; on first launch, right-click the app and choose
-      <strong>Open</strong>, then click <strong>Open</strong> in the dialog.
-    </p>
-    <a class="releases-link" href="https://github.com/cassiorsfreitas/gitrace/releases">
-      All releases &rarr;
-    </a>
-  </main>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <img src="icon.png" alt="Gitrace" class="hero-logo" />
+      <a href="https://github.com/cassiorsfreitas/gitrace/releases" class="badge">
+        <span class="badge-dot"></span>
+        v0.1.1 &mdash; Latest release
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <h1>
+        Git, the way it<br>
+        <span class="gradient-text">should feel.</span>
+      </h1>
+      <p class="hero-desc">
+        A native macOS git client built for developers who care about flow.
+        Pre-commit hooks, worktrees, and beautiful diffs &mdash; keyboard-first.
+      </p>
+      <div class="hero-actions">
+        <a href="https://github.com/cassiorsfreitas/gitrace/releases/latest/download/Gitrace-arm64.dmg" class="btn-primary btn-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download for macOS
+          <span class="chip">Apple Silicon</span>
+        </a>
+        <a href="https://github.com/cassiorsfreitas/gitrace" class="btn-secondary btn-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          View on GitHub
+        </a>
+      </div>
+      <p class="hero-note">
+        Unsigned app &mdash; on first launch, right-click and choose <strong>Open</strong>, then click <strong>Open</strong> in the dialog.
+        &nbsp;&middot;&nbsp; Free &middot; Apple Silicon &middot; macOS 13+
+      </p>
+    </div>
+
+    <!-- App Preview -->
+    <div class="preview-wrap">
+      <div class="preview-glow" aria-hidden="true"></div>
+      <div class="app-window">
+        <!-- Title bar -->
+        <div class="window-titlebar">
+          <div class="traffic-lights">
+            <div class="tl tl-red"></div>
+            <div class="tl tl-yellow"></div>
+            <div class="tl tl-green"></div>
+          </div>
+          <span class="window-title">gitrace &mdash; main</span>
+        </div>
+
+        <!-- Window body -->
+        <div class="window-body">
+          <!-- Sidebar -->
+          <aside class="win-sidebar">
+            <div class="win-section">
+              <div class="win-section-label">Branches</div>
+              <div class="win-list">
+                <div class="win-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+                  main
+                </div>
+                <div class="win-item win-item-active">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+                  feat/auth
+                </div>
+                <div class="win-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+                  fix/diff
+                </div>
+              </div>
+            </div>
+            <div class="win-section">
+              <div class="win-section-label">Worktrees</div>
+              <div class="win-list">
+                <div class="win-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                  ~/proj
+                </div>
+                <div class="win-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                  ~/proj-fix
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- File list -->
+          <div class="win-files">
+            <div class="win-section-label">Changes (4)</div>
+            <div class="win-list">
+              <div class="win-item win-item-active">
+                <span class="file-status file-modified">M</span>
+                auth/login.ts
+              </div>
+              <div class="win-item">
+                <span class="file-status file-modified">M</span>
+                auth/session.ts
+              </div>
+              <div class="win-item">
+                <span class="file-status file-added">A</span>
+                components/ui.tsx
+              </div>
+              <div class="win-item">
+                <span class="file-status file-deleted">D</span>
+                old.ts
+              </div>
+            </div>
+          </div>
+
+          <!-- Diff view -->
+          <div class="win-diff">
+            <div class="diff-header">
+              <span class="diff-filename">auth/login.ts</span>
+              <span class="diff-stat">+12 &minus;4</span>
+            </div>
+            <div class="diff-lines">
+              <div class="diff-line diff-ctx"><span class="ln">12</span><span class="sign">&nbsp;</span><span class="code">export async function login(</span></div>
+              <div class="diff-line diff-ctx"><span class="ln">13</span><span class="sign">&nbsp;</span><span class="code">  email: string,</span></div>
+              <div class="diff-line diff-del"><span class="ln">&ndash;</span><span class="sign">&minus;</span><span class="code">  password: string</span></div>
+              <div class="diff-line diff-add"><span class="ln">+</span><span class="sign">+</span><span class="code">  password: string,</span></div>
+              <div class="diff-line diff-add"><span class="ln">+</span><span class="sign">+</span><span class="code">  options?: LoginOptions</span></div>
+              <div class="diff-line diff-ctx"><span class="ln">14</span><span class="sign">&nbsp;</span><span class="code">) {</span></div>
+              <div class="diff-line diff-del"><span class="ln">&ndash;</span><span class="sign">&minus;</span><span class="code">  const user = await db.find(email)</span></div>
+              <div class="diff-line diff-add"><span class="ln">+</span><span class="sign">+</span><span class="code">  const user = await db.users.findUnique({</span></div>
+              <div class="diff-line diff-add"><span class="ln">+</span><span class="sign">+</span><span class="code">    where: { email },</span></div>
+              <div class="diff-line diff-ctx"><span class="ln">15</span><span class="sign">&nbsp;</span><span class="code">  return user</span></div>
+              <div class="diff-line diff-ctx"><span class="ln">16</span><span class="sign">&nbsp;</span><span class="code">}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status bar -->
+        <div class="window-statusbar">
+          <div class="statusbar-left">
+            <span class="status-dot status-ok"></span>
+            pre-commit passed
+          </div>
+          <span class="statusbar-sep">&middot;</span>
+          <span>4 files</span>
+          <div class="statusbar-right">
+            <kbd>&#8984;</kbd>
+            <kbd>K</kbd>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="section border-top">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-eyebrow">Features</div>
+        <h2>Everything you need.<br>Nothing you don&apos;t.</h2>
+        <p class="section-desc">Built around a command palette. Every action one keystroke away.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
+          </div>
+          <h3>Command Palette</h3>
+          <p>&#8984;K to stage, commit, push, switch branches, or run any git command. No menus required.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>Pre-commit Hooks</h3>
+          <p>Run lint, type checks, and tests before every commit. See live status with timing for each step.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          </div>
+          <h3>Worktrees</h3>
+          <p>Manage multiple working trees as first-class citizens. Switch contexts without stashing.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="10 13 8 15 10 17"/><polyline points="14 13 16 15 14 17"/></svg>
+          </div>
+          <h3>Beautiful Diffs</h3>
+          <p>Syntax-highlighted, side-by-side or unified. Stage individual hunks or lines with a click.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <h3>Native Performance</h3>
+          <p>Built with Swift and React. Opens in under 100ms. Indexes large repos instantly.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          </div>
+          <h3>Terminal-free Flow</h3>
+          <p>Every git operation available from the UI. Stay focused, ship without context switching.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section id="workflow" class="section border-top">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-eyebrow">Workflow</div>
+        <h2>From change to commit<br>in seconds.</h2>
+      </div>
+      <div class="workflow-grid">
+        <div class="workflow-card">
+          <div class="workflow-top">
+            <div class="workflow-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+            </div>
+            <span class="workflow-step">01</span>
+          </div>
+          <h3>Branch &amp; Worktree</h3>
+          <p>Create branches and worktrees from the palette. Skip the terminal entirely.</p>
+        </div>
+        <div class="workflow-card">
+          <div class="workflow-top">
+            <div class="workflow-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg>
+            </div>
+            <span class="workflow-step">02</span>
+          </div>
+          <h3>Stage &amp; Commit</h3>
+          <p>Review hunks, run pre-commit checks, and ship with confidence.</p>
+        </div>
+        <div class="workflow-card">
+          <div class="workflow-top">
+            <div class="workflow-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
+            </div>
+            <span class="workflow-step">03</span>
+          </div>
+          <h3>Push &amp; PR</h3>
+          <p>Push to origin and open a pull request without leaving the app.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download CTA -->
+  <section id="download" class="section border-top">
+    <div class="container">
+      <div class="cta-card">
+        <div class="cta-glow" aria-hidden="true"></div>
+        <div class="cta-content">
+          <h2>Ready to ship faster?</h2>
+          <p>Download Gitrace and feel the difference in the first commit.</p>
+          <div class="cta-actions">
+            <a href="https://github.com/cassiorsfreitas/gitrace/releases/latest/download/Gitrace-arm64.dmg" class="btn-primary btn-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06z"/><path d="M10 2c0 2.5.5 4-2 6"/></svg>
+              Download for macOS
+            </a>
+            <a href="https://github.com/cassiorsfreitas/gitrace" class="btn-secondary btn-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              View on GitHub
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+          <p class="cta-note">
+            Unsigned app &mdash; right-click <strong>Open</strong> on first launch &middot; All releases on <a href="https://github.com/cassiorsfreitas/gitrace/releases">GitHub</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="icon.png" alt="" class="logo-img logo-img-sm" />
+        <span>Gitrace &copy; 2026</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/cassiorsfreitas/gitrace/releases">Changelog</a>
+        <a href="https://github.com/cassiorsfreitas/gitrace/issues">Issues</a>
+        <a href="https://github.com/cassiorsfreitas/gitrace">GitHub</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
