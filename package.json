@@ -12,7 +12,7 @@
     "preview": "electron-vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "postinstall": "mv node_modules/electron/dist/Electron.app node_modules/electron/dist/Gitrace.app 2>/dev/null; printf 'Gitrace.app/Contents/MacOS/Electron' > node_modules/electron/path.txt && plutil -replace CFBundleName -string Gitrace node_modules/electron/dist/Gitrace.app/Contents/Info.plist && plutil -replace CFBundleDisplayName -string Gitrace node_modules/electron/dist/Gitrace.app/Contents/Info.plist"
+    "postinstall": "(mv node_modules/electron/dist/Electron.app node_modules/electron/dist/Gitrace.app 2>/dev/null; printf 'Gitrace.app/Contents/MacOS/Electron' > node_modules/electron/path.txt && plutil -replace CFBundleName -string Gitrace node_modules/electron/dist/Gitrace.app/Contents/Info.plist && plutil -replace CFBundleDisplayName -string Gitrace node_modules/electron/dist/Gitrace.app/Contents/Info.plist) || true"
   },
   "dependencies": {
     "@pierre/diffs": "^1.2.2",
