@@ -776,6 +776,19 @@ body {
   font-weight: 500;
   padding: 6px 10px;
   transition: background 0.1s, color 0.1s;
+  width: 100%;
+}
+
+.commit-btn-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 90%;
+}
+
+.commit-btn-cmd {
+  width: 10%;  
 }
 
 .commit-btn:hover:not(:disabled) {
@@ -793,6 +806,7 @@ body {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
+  white-space: nowrap;
 }
 
 .commit-btn--primary:hover:not(:disabled) {
@@ -811,6 +825,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.commit-btn-branch {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+  max-width: 80px;
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 .commit-btn-badge {
@@ -970,4 +995,5 @@ body {
 .ctx-menu-item--destructive:hover {
   background: rgba(224, 108, 117, 0.12);
 }
+
 

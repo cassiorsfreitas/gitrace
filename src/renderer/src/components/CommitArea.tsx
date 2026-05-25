@@ -86,7 +86,7 @@ export function CommitArea({
   );
 
   return (
-    <div className={`commit-area${isFocused ? ' commit-area--focused' : ''}`}>
+    <div className={`commit-area${isFocused ? " commit-area--focused" : ""}`}>
       <textarea
         ref={textareaRef}
         className="commit-message"
@@ -107,8 +107,21 @@ export function CommitArea({
           onClick={handleSubmit}
           disabled={!canSubmit}
         >
-          <GitCommit size={14} strokeWidth={1.5} />
-          Commit{branchName ? ` to ${branchName}` : ''}
+          <div className="commit-btn-text">
+            <GitCommit size={14} strokeWidth={1.5} />
+            Commit
+            {branchName ? (
+              <>
+                {" to "}
+                <span className="commit-btn-branch" title={branchName}>
+                  {branchName}
+                </span>
+              </>
+            ) : (
+              ""
+            )}
+          </div>
+          <div className="commit-btn-cmd"></div>
           <kbd className="commit-btn-badge">⌘↵</kbd>
         </button>
         <button
@@ -116,9 +129,22 @@ export function CommitArea({
           disabled
           title="AI generation (coming soon)"
         >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 1L8.29 5.21L12.5 7L8.29 8.79L7 13L5.71 8.79L1.5 7L5.71 5.21L7 1Z" fill="currentColor"/>
-            <path d="M11.5 1.5L12.2 3.3L14 4L12.2 4.7L11.5 6.5L10.8 4.7L9 4L10.8 3.3L11.5 1.5Z" fill="currentColor" opacity="0.6"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7 1L8.29 5.21L12.5 7L8.29 8.79L7 13L5.71 8.79L1.5 7L5.71 5.21L7 1Z"
+              fill="currentColor"
+            />
+            <path
+              d="M11.5 1.5L12.2 3.3L14 4L12.2 4.7L11.5 6.5L10.8 4.7L9 4L10.8 3.3L11.5 1.5Z"
+              fill="currentColor"
+              opacity="0.6"
+            />
           </svg>
         </button>
       </div>

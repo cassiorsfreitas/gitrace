@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { GitStatus, IpcEventPayload, TrackedFile, SyncStatus } from "@shared/ipc";
+import type {
+  GitStatus,
+  IpcEventPayload,
+  TrackedFile,
+  SyncStatus,
+} from "@shared/ipc";
 import { FileTreePanel } from "./components/FileTreePanel";
 import { DiffCanvas } from "./components/DiffCanvas";
 import type { DiffCanvasHandle } from "./components/DiffCanvas";
@@ -12,7 +17,7 @@ import { CommandPalette } from "./components/CommandPalette";
 import type { CommandDefinition } from "./components/CommandPalette";
 
 type FocusedColumn = 1 | 2 | 3 | 4;
-type SectionedFile = TrackedFile & { section: 'staged' | 'unstaged' };
+type SectionedFile = TrackedFile & { section: "staged" | "unstaged" };
 
 /** Locate the current selection in the flat file list.
  *  Tries exact {path, section} match first; falls back to path-only
@@ -21,12 +26,14 @@ type SectionedFile = TrackedFile & { section: 'staged' | 'unstaged' };
 function resolveIdx(
   files: SectionedFile[],
   path: string | null,
-  section: 'staged' | 'unstaged' | null,
+  section: "staged" | "unstaged" | null,
 ): number {
   if (!path) return -1;
-  const exact = files.findIndex(f => f.path === path && f.section === section);
+  const exact = files.findIndex(
+    (f) => f.path === path && f.section === section,
+  );
   if (exact !== -1) return exact;
-  return files.findIndex(f => f.path === path);
+  return files.findIndex((f) => f.path === path);
 }
 
 function App() {
@@ -34,7 +41,9 @@ function App() {
   const [activeRepo, setActiveRepo] = useState<string | null>(null);
   const [gitStatus, setGitStatus] = useState<GitStatus | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [selectedSection, setSelectedSection] = useState<'staged' | 'unstaged' | null>(null);
+  const [selectedSection, setSelectedSection] = useState<
+    "staged" | "unstaged" | null
+  >(null);
   const [stagedDiff, setStagedDiff] = useState<string | null>(null);
   const [unstagedDiff, setUnstagedDiff] = useState<string | null>(null);
   const [hookState, setHookState] = useState<HookState>({
@@ -43,10 +52,13 @@ function App() {
     exitCode: null,
   });
 
-  const [branchName, setBranchName] = useState<string>('');
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>({ ahead: 0, behind: 0 });
-  const [remoteName, setRemoteName] = useState<string>('');
-  const [appVersion, setAppVersion] = useState<string>('');
+  const [branchName, setBranchName] = useState<string>("");
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({
+    ahead: 0,
+    behind: 0,
+  });
+  const [remoteName, setRemoteName] = useState<string>("");
+  const [appVersion, setAppVersion] = useState<string>("");
   const [paletteOpen, setPaletteOpen] = useState<boolean>(false);
 
   const [focusedColumn, setFocusedColumn] = useState<FocusedColumn>(2);
@@ -60,18 +72,28 @@ function App() {
   // Flat ordered list of all files for keyboard navigation (tagged with section)
   const allFiles = useMemo(
     (): SectionedFile[] => [
-      ...(gitStatus?.staged ?? []).map(f => ({ ...f, section: 'staged' as const })),
-      ...(gitStatus?.unstaged ?? []).map(f => ({ ...f, section: 'unstaged' as const })),
+      ...(gitStatus?.staged ?? []).map((f) => ({
+        ...f,
+        section: "staged" as const,
+      })),
+      ...(gitStatus?.unstaged ?? []).map((f) => ({
+        ...f,
+        section: "unstaged" as const,
+      })),
     ],
     [gitStatus],
   );
 
   // Stable refs so the keyboard handler never goes stale
+  const activeRepoRef = useRef<string | null>(activeRepo);
+  activeRepoRef.current = activeRepo;
   const allFilesRef = useRef<SectionedFile[]>(allFiles);
   allFilesRef.current = allFiles;
   const selectedFileRef = useRef<string | null>(selectedFile);
   selectedFileRef.current = selectedFile;
-  const selectedSectionRef = useRef<'staged' | 'unstaged' | null>(selectedSection);
+  const selectedSectionRef = useRef<"staged" | "unstaged" | null>(
+    selectedSection,
+  );
   selectedSectionRef.current = selectedSection;
   const matchesRef = useRef(matches);
   matchesRef.current = matches;
@@ -80,20 +102,30 @@ function App() {
   const gitStatusRef = useRef<GitStatus | null>(gitStatus);
   gitStatusRef.current = gitStatus;
   const handleStageFileRef = useRef<(filePath: string) => Promise<void>>(null!);
-  const handleUnstageFileRef = useRef<(filePath: string) => Promise<void>>(null!);
-  const handleDiscardFileRef = useRef<(filePath: string) => Promise<void>>(null!);
-  const handleOpenInEditorRef = useRef<(filePath: string) => Promise<void>>(null!);
+  const handleUnstageFileRef = useRef<(filePath: string) => Promise<void>>(
+    null!,
+  );
+  const handleDiscardFileRef = useRef<(filePath: string) => Promise<void>>(
+    null!,
+  );
+  const handleOpenInEditorRef = useRef<(filePath: string) => Promise<void>>(
+    null!,
+  );
 
   const refreshGitData = useCallback(
     async (repoPath: string): Promise<void> => {
-      const [status, staged, unstaged, branch, sync, remote] = await Promise.all([
-        window.electron.ipcRenderer.invoke("git:getStatus", { repoPath }),
-        window.electron.ipcRenderer.invoke("git:getStagedDiff", { repoPath }),
-        window.electron.ipcRenderer.invoke("git:getUnstagedDiff", { repoPath }),
-        window.electron.ipcRenderer.invoke("git:branch", { repoPath }),
-        window.electron.ipcRenderer.invoke("git:syncStatus", { repoPath }),
-        window.electron.ipcRenderer.invoke("git:remoteName", { repoPath }),
-      ]);
+      const [status, staged, unstaged, branch, sync, remote] =
+        await Promise.all([
+          window.electron.ipcRenderer.invoke("git:getStatus", { repoPath }),
+          window.electron.ipcRenderer.invoke("git:getStagedDiff", { repoPath }),
+          window.electron.ipcRenderer.invoke("git:getUnstagedDiff", {
+            repoPath,
+          }),
+          window.electron.ipcRenderer.invoke("git:branch", { repoPath }),
+          window.electron.ipcRenderer.invoke("git:syncStatus", { repoPath }),
+          window.electron.ipcRenderer.invoke("git:remoteName", { repoPath }),
+        ]);
+      if (activeRepoRef.current !== repoPath) return;
       setGitStatus(status as GitStatus);
       setStagedDiff(staged as string);
       setUnstagedDiff(unstaged as string);
@@ -105,18 +137,19 @@ function App() {
   );
 
   useEffect(() => {
-    window.electron.ipcRenderer
-      .invoke("repo:getAll", {})
-      .then((r: unknown) => {
-        const { repos: all, activeIndex } = r as { repos: string[]; activeIndex: number };
-        setRepos(all);
-        if (all.length > 0) {
-          const idx = Math.min(activeIndex, all.length - 1);
-          const repo = all[idx];
-          setActiveRepo(repo);
-          refreshGitData(repo);
-        }
-      });
+    window.electron.ipcRenderer.invoke("repo:getAll", {}).then((r: unknown) => {
+      const { repos: all, activeIndex } = r as {
+        repos: string[];
+        activeIndex: number;
+      };
+      setRepos(all);
+      if (all.length > 0) {
+        const idx = Math.min(activeIndex, all.length - 1);
+        const repo = all[idx];
+        setActiveRepo(repo);
+        refreshGitData(repo);
+      }
+    });
   }, [refreshGitData]);
 
   useEffect(() => {
@@ -131,7 +164,7 @@ function App() {
       _event: unknown,
       payload: IpcEventPayload<"git:changed">,
     ): void => {
-      if (payload.repoPath === activeRepo) {
+      if (payload.repoPath === activeRepoRef.current) {
         refreshGitData(payload.repoPath);
       }
     };
@@ -139,23 +172,23 @@ function App() {
     return (): void => {
       window.electron.ipcRenderer.removeListener("git:changed", handler);
     };
-  }, [activeRepo, refreshGitData]);
+  }, [refreshGitData]);
 
   // Re-anchor selectedSection whenever gitStatus changes (e.g. after stage/unstage ops)
   useEffect(() => {
     const path = selectedFileRef.current;
     const section = selectedSectionRef.current;
     if (!path || !gitStatus) return;
-    const inStaged = gitStatus.staged.some(f => f.path === path);
-    const inUnstaged = gitStatus.unstaged.some(f => f.path === path);
+    const inStaged = gitStatus.staged.some((f) => f.path === path);
+    const inUnstaged = gitStatus.unstaged.some((f) => f.path === path);
     if (!inStaged && !inUnstaged) {
       setSelectedSection(null);
-    } else if (section === 'staged' && !inStaged) {
-      setSelectedSection('unstaged');
-    } else if (section === 'unstaged' && !inUnstaged) {
-      setSelectedSection('staged');
+    } else if (section === "staged" && !inStaged) {
+      setSelectedSection("unstaged");
+    } else if (section === "unstaged" && !inUnstaged) {
+      setSelectedSection("staged");
     } else if (section === null) {
-      setSelectedSection(inStaged ? 'staged' : 'unstaged');
+      setSelectedSection(inStaged ? "staged" : "unstaged");
     }
   }, [gitStatus]);
 
@@ -189,12 +222,20 @@ function App() {
   // Global keyboard navigation — column-aware
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
-      if ((document.activeElement as Element)?.closest('.cmd-palette-container')) return;
+      if (
+        (document.activeElement as Element)?.closest(".cmd-palette-container")
+      )
+        return;
       const col = focusedColumnRef.current;
       const isTextarea = document.activeElement instanceof HTMLTextAreaElement;
       const m = matchesRef.current;
 
-      const isEscape = e.key === "Escape" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey;
+      const isEscape =
+        e.key === "Escape" &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey &&
+        !e.shiftKey;
       const isFocusLeft = m(e, "focusLeft");
       const isFocusRight = m(e, "focusRight");
 
@@ -209,7 +250,8 @@ function App() {
       }
 
       if (isFocusRight) {
-        const canAdvance = col < 4 && !(col === 2 && allFilesRef.current.length === 0);
+        const canAdvance =
+          col < 4 && !(col === 2 && allFilesRef.current.length === 0);
         if (canAdvance) {
           e.preventDefault();
           setFocusedColumn((col + 1) as FocusedColumn);
@@ -218,13 +260,13 @@ function App() {
       }
 
       // Command palette: fires universally, even from textarea
-      if (m(e, 'openCommandPalette')) {
+      if (m(e, "openCommandPalette")) {
         e.preventDefault();
         setPaletteOpen(true);
         return;
       }
 
-      if (m(e, 'openKeybindingsFile')) {
+      if (m(e, "openKeybindingsFile")) {
         e.preventDefault();
         handleOpenKeybindingsFile();
         return;
@@ -274,13 +316,16 @@ function App() {
               setSelectedSection(prev.section);
             } else if (idx === -1 && files.length > 0) {
               // Stale selection — re-anchor to first match by path
-              const fallback = files.find(f => f.path === current);
-              if (fallback) { setSelectedFile(fallback.path); setSelectedSection(fallback.section); }
+              const fallback = files.find((f) => f.path === current);
+              if (fallback) {
+                setSelectedFile(fallback.path);
+                setSelectedSection(fallback.section);
+              }
             }
           }
         } else if (m(e, "toggleStage") && current) {
           e.preventDefault();
-          const isStaged = selectedSectionRef.current === 'staged';
+          const isStaged = selectedSectionRef.current === "staged";
           if (isStaged) {
             handleUnstageFileRef.current(current);
           } else {
@@ -288,7 +333,7 @@ function App() {
           }
         } else if (m(e, "stepBack") && current) {
           e.preventDefault();
-          const isStaged = selectedSectionRef.current === 'staged';
+          const isStaged = selectedSectionRef.current === "staged";
           if (isStaged) {
             handleUnstageFileRef.current(current);
           } else {
@@ -350,11 +395,15 @@ function App() {
         handleSelectRepo(added as string);
         const idx = (all as string[]).indexOf(added as string);
         if (idx !== -1) {
-          window.electron.ipcRenderer.invoke("repo:setActiveIndex", { index: idx });
+          window.electron.ipcRenderer.invoke("repo:setActiveIndex", {
+            index: idx,
+          });
         }
       }
     } catch (err) {
-      console.error(err instanceof Error ? err.message : "Failed to add repository");
+      console.error(
+        err instanceof Error ? err.message : "Failed to add repository",
+      );
     }
   };
 
@@ -365,9 +414,9 @@ function App() {
     setSelectedSection(null);
     setStagedDiff(null);
     setUnstagedDiff(null);
-    setBranchName('');
+    setBranchName("");
     setSyncStatus({ ahead: 0, behind: 0 });
-    setRemoteName('');
+    setRemoteName("");
     refreshGitData(repoPath);
     const idx = repos.indexOf(repoPath);
     if (idx !== -1) {
@@ -384,9 +433,9 @@ function App() {
       setSelectedSection(null);
       setStagedDiff(null);
       setUnstagedDiff(null);
-      setBranchName('');
+      setBranchName("");
       setSyncStatus({ ahead: 0, behind: 0 });
-      setRemoteName('');
+      setRemoteName("");
     }
     await refreshRepos();
   };
@@ -540,83 +589,181 @@ function App() {
     return msg as string;
   }, [activeRepo]);
 
-  const commands = useMemo((): CommandDefinition[] => [
-    // Staging
-    { id: 'stage-all', label: 'Stage All', group: 'Staging', action: () => { handleStageAll(); } },
-    { id: 'unstage-all', label: 'Unstage All', group: 'Staging', action: () => { handleUnstageAll(); } },
-    {
-      id: 'toggle-stage', label: 'Toggle Stage', group: 'Staging',
-      action: () => {
-        if (!selectedFile) return;
-        if (selectedSection === 'staged') handleUnstageFile(selectedFile);
-        else handleStageFile(selectedFile);
+  const commands = useMemo(
+    (): CommandDefinition[] => [
+      // Staging
+      {
+        id: "stage-all",
+        label: "Stage All",
+        group: "Staging",
+        action: () => {
+          handleStageAll();
+        },
       },
-      bindingKey: 'toggleStage',
-    },
-    // Commit
-    { id: 'commit', label: 'Commit', group: 'Commit', action: () => { setFocusedColumn(4); }, bindingKey: 'commit' },
-    { id: 'commit-push', label: 'Commit & Push', group: 'Commit', action: () => {} },
-    { id: 'amend', label: 'Amend', group: 'Commit', action: () => { setFocusedColumn(4); } },
-    // Navigation
-    { id: 'focus-col-1', label: 'Focus Column 1', group: 'Navigation', action: () => { setFocusedColumn(1); } },
-    { id: 'focus-col-2', label: 'Focus Column 2', group: 'Navigation', action: () => { setFocusedColumn(2); } },
-    { id: 'focus-col-3', label: 'Focus Column 3', group: 'Navigation', action: () => { setFocusedColumn(3); } },
-    { id: 'focus-col-4', label: 'Focus Column 4', group: 'Navigation', action: () => { setFocusedColumn(4); } },
-    {
-      id: 'next-file', label: 'Next File', group: 'Navigation',
-      action: () => {
-        if (allFiles.length === 0) return;
-        const idx = resolveIdx(allFiles, selectedFile, selectedSection);
-        const next = idx < allFiles.length - 1 ? idx + 1 : idx;
-        const target = idx === -1 ? allFiles[0] : allFiles[next];
-        setSelectedFile(target.path);
-        setSelectedSection(target.section);
+      {
+        id: "unstage-all",
+        label: "Unstage All",
+        group: "Staging",
+        action: () => {
+          handleUnstageAll();
+        },
       },
-      bindingKey: 'nextFile',
-    },
-    {
-      id: 'prev-file', label: 'Previous File', group: 'Navigation',
-      action: () => {
-        if (allFiles.length === 0) return;
-        const idx = resolveIdx(allFiles, selectedFile, selectedSection);
-        if (idx > 0) {
-          const prev = allFiles[idx - 1];
-          setSelectedFile(prev.path);
-          setSelectedSection(prev.section);
-        }
+      {
+        id: "toggle-stage",
+        label: "Toggle Stage",
+        group: "Staging",
+        action: () => {
+          if (!selectedFile) return;
+          if (selectedSection === "staged") handleUnstageFile(selectedFile);
+          else handleStageFile(selectedFile);
+        },
+        bindingKey: "toggleStage",
       },
-      bindingKey: 'prevFile',
-    },
-    // Repository
-    { id: 'switch-repo', label: 'Switch Repository', group: 'Repository', action: () => { setFocusedColumn(1); } },
-    {
-      id: 'open-in-editor', label: 'Open in Editor', group: 'Repository',
-      action: () => {
-        if (!selectedFile) return;
-        handleOpenInEditor(selectedFile);
+      // Commit
+      {
+        id: "commit",
+        label: "Commit",
+        group: "Commit",
+        action: () => {
+          setFocusedColumn(4);
+        },
+        bindingKey: "commit",
       },
-      bindingKey: 'openInEditor',
-    },
-    // App
-    {
-      id: 'open-keybindings-file', label: 'Open Keybindings File', group: 'App',
-      action: () => { handleOpenKeybindingsFile(); },
-      bindingKey: 'openKeybindingsFile',
-    },
-  ], [handleStageAll, handleUnstageAll, handleStageFile, handleUnstageFile, handleOpenInEditor, handleOpenKeybindingsFile, selectedFile, selectedSection, allFiles]);
+      {
+        id: "commit-push",
+        label: "Commit & Push",
+        group: "Commit",
+        action: () => {},
+      },
+      {
+        id: "amend",
+        label: "Amend",
+        group: "Commit",
+        action: () => {
+          setFocusedColumn(4);
+        },
+      },
+      // Navigation
+      {
+        id: "focus-col-1",
+        label: "Focus Column 1",
+        group: "Navigation",
+        action: () => {
+          setFocusedColumn(1);
+        },
+      },
+      {
+        id: "focus-col-2",
+        label: "Focus Column 2",
+        group: "Navigation",
+        action: () => {
+          setFocusedColumn(2);
+        },
+      },
+      {
+        id: "focus-col-3",
+        label: "Focus Column 3",
+        group: "Navigation",
+        action: () => {
+          setFocusedColumn(3);
+        },
+      },
+      {
+        id: "focus-col-4",
+        label: "Focus Column 4",
+        group: "Navigation",
+        action: () => {
+          setFocusedColumn(4);
+        },
+      },
+      {
+        id: "next-file",
+        label: "Next File",
+        group: "Navigation",
+        action: () => {
+          if (allFiles.length === 0) return;
+          const idx = resolveIdx(allFiles, selectedFile, selectedSection);
+          const next = idx < allFiles.length - 1 ? idx + 1 : idx;
+          const target = idx === -1 ? allFiles[0] : allFiles[next];
+          setSelectedFile(target.path);
+          setSelectedSection(target.section);
+        },
+        bindingKey: "nextFile",
+      },
+      {
+        id: "prev-file",
+        label: "Previous File",
+        group: "Navigation",
+        action: () => {
+          if (allFiles.length === 0) return;
+          const idx = resolveIdx(allFiles, selectedFile, selectedSection);
+          if (idx > 0) {
+            const prev = allFiles[idx - 1];
+            setSelectedFile(prev.path);
+            setSelectedSection(prev.section);
+          }
+        },
+        bindingKey: "prevFile",
+      },
+      // Repository
+      {
+        id: "switch-repo",
+        label: "Switch Repository",
+        group: "Repository",
+        action: () => {
+          setFocusedColumn(1);
+        },
+      },
+      {
+        id: "open-in-editor",
+        label: "Open in Editor",
+        group: "Repository",
+        action: () => {
+          if (!selectedFile) return;
+          handleOpenInEditor(selectedFile);
+        },
+        bindingKey: "openInEditor",
+      },
+      // App
+      {
+        id: "open-keybindings-file",
+        label: "Open Keybindings File",
+        group: "App",
+        action: () => {
+          handleOpenKeybindingsFile();
+        },
+        bindingKey: "openKeybindingsFile",
+      },
+    ],
+    [
+      handleStageAll,
+      handleUnstageAll,
+      handleStageFile,
+      handleUnstageFile,
+      handleOpenInEditor,
+      handleOpenKeybindingsFile,
+      selectedFile,
+      selectedSection,
+      allFiles,
+    ],
+  );
 
   const handleGlobalMouseDown = (e: React.MouseEvent): void => {
     const target = e.target as Element;
-    if (target.closest('.nav-rail')) setFocusedColumn(1);
-    else if (target.closest('.file-tree-panel')) setFocusedColumn(2);
-    else if (target.closest('.diff-canvas')) setFocusedColumn(3);
-    else if (target.closest('.commit-area')) setFocusedColumn(4);
+    if (target.closest(".nav-rail")) setFocusedColumn(1);
+    else if (target.closest(".file-tree-panel")) setFocusedColumn(2);
+    else if (target.closest(".diff-canvas")) setFocusedColumn(3);
+    else if (target.closest(".commit-area")) setFocusedColumn(4);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
-        <div className="app" onMouseDown={handleGlobalMouseDown} style={{ display: 'flex', flex: 1 }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      <div style={{ flex: 1, overflow: "hidden", display: "flex" }}>
+        <div
+          className="app"
+          onMouseDown={handleGlobalMouseDown}
+          style={{ display: "flex", flex: 1 }}
+        >
           <NavRail
             repos={repos}
             activeRepo={activeRepo}
@@ -633,7 +780,10 @@ function App() {
                   gitStatus={gitStatus}
                   selectedFile={selectedFile}
                   selectedSection={selectedSection}
-                  onFileSelect={(path, section) => { setSelectedFile(path); setSelectedSection(section); }}
+                  onFileSelect={(path, section) => {
+                    setSelectedFile(path);
+                    setSelectedSection(section);
+                  }}
                   onStageFile={handleStageFile}
                   onUnstageFile={handleUnstageFile}
                   onDiscardFile={handleDiscardFile}
